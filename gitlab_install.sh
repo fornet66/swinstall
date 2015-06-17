@@ -14,3 +14,5 @@ sudo gitlab-ctl reconfigure
 Username: root 
 Password: 5iveL!fe
 
+yum install ruby
+yum install redis
