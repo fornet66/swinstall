@@ -25,19 +25,18 @@ mount /dev/dbvg/dblv2 /oracle
 mount /dev/scmvg/scmlv1 /githome
 mount /dev/scmvg/scmlv2 /svnroot
 
-useradd mysql
 useradd oracle
 useradd githome
 useradd svnroot
 
-chown mysql:mysql /mysql
+chown mysql:mysql /mariadb
 chown oracle:oracle /oracle
 chown githome:githome /githome
 chown svnroot:svnroot /svnroot
 chmod 700 /mysql /oracle /githome /svnroot
 
 cat << EOF >> /etc/fstab
-/dev/mapper/dbvg-dblv1  /mysql                  ext4    defaults        1 3
+/dev/mapper/dbvg-dblv1  /mariadb                ext4    defaults        1 3
 /dev/mapper/dbvg-dblv2  /oracle                 ext4    defaults        1 4
 /dev/mapper/scmvg-scmlv1        /githome        ext4    defaults        1 5
 /dev/mapper/scmvg-scmlv2        /svnroot        ext4    defaults        1 6
@@ -50,4 +49,18 @@ yum install gcc-c++
 yum install tcl
 yum install ruby
 yum install uuid
+yum install mariadb
+yum install mariadb-server
+yum install mariadb-devel
+
+
+## start mariadb
+cp /usr/local/mysql/my-huge.cnf /etc/my.cnf
+#change data_dir to /mariadb/mysql
+setenforce 0
+systemctl start mariadb.service
+mysql_secure_installation
+firewall-cmd --add-service=http --permanent
+firewall-cmd --add-service=mysql --permanent
+systemctl --failed
 
