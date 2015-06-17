@@ -64,3 +64,7 @@ firewall-cmd --add-service=http --permanent
 firewall-cmd --add-service=mysql --permanent
 systemctl --failed
 
+yum install epel-release
+yum install redis
+
+
