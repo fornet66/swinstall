@@ -18,27 +18,27 @@ mkfs.ext4 /dev/dbvg/dblv1
 mkfs.ext4 /dev/dbvg/dblv2
 mkfs.ext4 /dev/scmvg/scmlv1
 mkfs.ext4 /dev/scmvg/scmlv2
-mkdir mysql oracle githome svnroot
+mkdir mariadb oracle git svnroot
 
 mount /dev/dbvg/dblv1 /mysql
 mount /dev/dbvg/dblv2 /oracle
-mount /dev/scmvg/scmlv1 /githome
+mount /dev/scmvg/scmlv1 /git
 mount /dev/scmvg/scmlv2 /svnroot
 
 useradd oracle
-useradd githome
+useradd git
 useradd svnroot
 
 chown mysql:mysql /mariadb
 chown oracle:oracle /oracle
-chown githome:githome /githome
+chown git:git /git
 chown svnroot:svnroot /svnroot
-chmod 700 /mysql /oracle /githome /svnroot
+chmod 700 /mysql /oracle /git /svnroot
 
 cat << EOF >> /etc/fstab
 /dev/mapper/dbvg-dblv1  /mariadb                ext4    defaults        1 3
 /dev/mapper/dbvg-dblv2  /oracle                 ext4    defaults        1 4
-/dev/mapper/scmvg-scmlv1        /githome        ext4    defaults        1 5
+/dev/mapper/scmvg-scmlv1        /git        ext4    defaults        1 5
 /dev/mapper/scmvg-scmlv2        /svnroot        ext4    defaults        1 6
 EOF
 
@@ -58,6 +58,7 @@ yum install mariadb-devel
 cp /usr/local/mysql/my-huge.cnf /etc/my.cnf
 #change data_dir to /mariadb/mysql
 setenforce 0
+vi /etc/sysconfig/selinux	# change enforcing to disabled
 systemctl start mariadb.service
 mysql_secure_installation
 firewall-cmd --add-service=http --permanent
