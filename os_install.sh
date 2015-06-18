@@ -52,6 +52,7 @@ yum install tcl
 yum install uuid
 yum install pcre
 yum install nginx
+yum install java-1.7.0
 
 systemctl --failed
 
