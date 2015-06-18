@@ -50,6 +50,8 @@ yum install gcc
 yum install gcc-c++
 yum install tcl
 yum install uuid
+yum install pcre
+yum install nginx
 
 systemctl --failed
 
