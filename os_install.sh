@@ -51,6 +51,7 @@ yum install gcc-c++
 yum install tcl
 yum install uuid
 yum install pcre
+yum install telnet
 yum install java-1.7.0
 
 systemctl --failed
