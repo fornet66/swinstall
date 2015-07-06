@@ -1,4 +1,5 @@
 
+# run on every machine
 hostnamectl set-hostname "ssmdb"
 hostnamectl status
 

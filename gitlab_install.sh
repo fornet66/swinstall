@@ -1,4 +1,5 @@
 
+# run on 10.1.234.28
 sudo yum install curl openssh-server
 sudo systemctl enable sshd
 sudo systemctl start sshd

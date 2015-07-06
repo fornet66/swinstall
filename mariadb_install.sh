@@ -1,4 +1,5 @@
 
+# run on 10.1.234.28
 yum install mariadb
 yum install mariadb-server
 yum install mariadb-devel
