@@ -57,3 +57,8 @@ yum install java-1.7.0
 
 systemctl --failed
 
+uncomment /home/pam.d/su   auth            required        pam_wheel.so use_uid to disable su command
+useradd xienan
+usermod -G wheel xienan
+
+
