@@ -47,5 +47,5 @@ yum install compat-db
 yum install control-center
 yum install unixODBC
 
-./runInstaller -silent -ignorePrereq -ignoreSysPrereqs -responseFile /tmp/db_install.rsp
+./runInstaller -silent -responseFile /tmp/db_install.rsp
 
