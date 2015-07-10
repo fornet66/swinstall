@@ -2,12 +2,12 @@
 # use bash to install oracle, must not set DISPLAY var
 mkdir -p app/product/11.2.0
 cat << EOF >> .bash_profile
-export TMP=/tmp;
-export TMPDIR=$TMP;
-export ORACLE_BASE=/home/oracle;
-export ORACLE_HOME=$ORACLE_BASE/app/product/11.2.0;
-export ORACLE_SID=AISSM;
-export ORACLE_TERM=xterm;
+export TMP=/tmp
+export TMPDIR=$TMP
+export ORACLE_BASE=/home/oracle
+export ORACLE_HOME=$ORACLE_BASE/app/product/11.2.0
+export ORACLE_SID=aissm
+export ORACLE_TERM=xterm
 export NLS_LANG=AMERICAN_AMERICA.ZHS16GBK
 export PATH=$ORACLE_HOME/bin:$PATH
 export LD_LIBRARY_PATH=$ORACLE_HOME/lib:$LD_LIBRARY_PATH
@@ -57,5 +57,8 @@ yum install unixODBC-devel.i686
 wget http://mirror.centos.org/centos/5/os/x86_64/CentOS/pdksh-5.2.14-37.el5_8.1.x86_64.rpm
 yum localinstall pdksh-5.2.14-37.el5_8.1.x86_64.rpm
 
-./runInstaller -silent -responseFile /tmp/db_install.rsp
+runInstaller -silent -responseFile /tmp/db_install.rsp
+dbca -silent -generateScripts -gdbName aissm -scriptDest /tmp/aissm -templateName /home/oracle/app/product/11.2.0/assistants/dbca/templates/General_Purpose.dbc
+
+
 
