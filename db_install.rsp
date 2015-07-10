@@ -275,12 +275,12 @@ oracle.install.db.config.starterdb.dbcontrol.enableEmailNotification=false
 #-------------------------------------------------------------------------------
 # Specify the email address to which the notifications are to be sent.
 #-------------------------------------------------------------------------------
-oracle.install.db.config.starterdb.dbcontrol.emailAddress=
+oracle.install.db.config.starterdb.dbcontrol.emailAddress=xienan@asiainfo.com
 
 #-------------------------------------------------------------------------------
 # Specify the SMTP server used for email notifications.
 #-------------------------------------------------------------------------------
-oracle.install.db.config.starterdb.dbcontrol.SMTPServer=
+oracle.install.db.config.starterdb.dbcontrol.SMTPServer=mail.asiainfo.com
 
 
 ###############################################################################

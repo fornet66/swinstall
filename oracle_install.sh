@@ -1,6 +1,7 @@
 
 # use bash to install oracle, must not set DISPLAY var
 mkdir -p app/product/11.2.0
+cat << EOF >> .bash_profile
 export TMP=/tmp;
 export TMPDIR=$TMP;
 export ORACLE_BASE=/home/oracle;
@@ -10,6 +11,8 @@ export ORACLE_TERM=xterm;
 export NLS_LANG=AMERICAN_AMERICA.ZHS16GBK
 export PATH=$ORACLE_HOME/bin:$PATH
 export LD_LIBRARY_PATH=$ORACLE_HOME/lib:$LD_LIBRARY_PATH
+umask 022
+EOF
 
 cat << EOF >> /etc/security/limits.conf
 oracle soft nproc 2047
