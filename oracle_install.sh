@@ -36,16 +36,26 @@ net.core.wmem_default = 262144
 net.core.wmem_max = 1048576
 EOF
 
+yum install glibc.i686
+yum install glibc-devel.i686
 yum install compat-libstdc++-33
-yum install compat-libstdc++-33
+yum install compat-libstdc++-33.i686
 yum install compat-gcc-44-c++
+yum install libgcc.i686
 yum install elfutils-libelf-devel
 yum install libaio-devel
+yum install libaio.i686
+yum install libaio-devel.i686
 yum install libXp
 yum install glibc-kernheaders
 yum install compat-db
 yum install control-center
 yum install unixODBC
+yum install unixODBC-devel
+yum install unixODBC.i686
+yum install unixODBC-devel.i686
+wget http://mirror.centos.org/centos/5/os/x86_64/CentOS/pdksh-5.2.14-37.el5_8.1.x86_64.rpm
+yum localinstall pdksh-5.2.14-37.el5_8.1.x86_64.rpm
 
 ./runInstaller -silent -responseFile /tmp/db_install.rsp
 
