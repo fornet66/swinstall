@@ -59,6 +59,8 @@ yum localinstall pdksh-5.2.14-37.el5_8.1.x86_64.rpm
 
 runInstaller -silent -responseFile /tmp/db_install.rsp
 dbca -silent -generateScripts -gdbName aissm -scriptDest /tmp/aissm -templateName /home/oracle/app/product/11.2.0/assistants/dbca/templates/General_Purpose.dbc
+netca -silent -responseFile /tmp/netca.rsp
 
-
+create tablespace tbsaissm datafile '/oracle/aissm/aissm01.dbf' size 2048M autoextend off EXTENT MANAGEMENT LOCAL;
+create user aissm identified by aissm default tablespace tbsaissm temporary tablespace temp;
 
