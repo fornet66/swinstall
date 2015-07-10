@@ -57,10 +57,16 @@ yum install unixODBC-devel.i686
 wget http://mirror.centos.org/centos/5/os/x86_64/CentOS/pdksh-5.2.14-37.el5_8.1.x86_64.rpm
 yum localinstall pdksh-5.2.14-37.el5_8.1.x86_64.rpm
 
+
+systemctl stop firewalld.service
 runInstaller -silent -responseFile /tmp/db_install.rsp
 dbca -silent -generateScripts -gdbName aissm -scriptDest /tmp/aissm -templateName /home/oracle/app/product/11.2.0/assistants/dbca/templates/General_Purpose.dbc
 netca -silent -responseFile /tmp/netca.rsp
 
 create tablespace tbsaissm datafile '/oracle/aissm/aissm01.dbf' size 2048M autoextend off EXTENT MANAGEMENT LOCAL;
 create user aissm identified by aissm default tablespace tbsaissm temporary tablespace temp;
+grant create session to aissm;
+grant dba to aissm;
+firewall-cmd --permanent --add-port=1521/tcp
+systemctl start firewalld.service
 
