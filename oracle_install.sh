@@ -67,6 +67,7 @@ create tablespace tbsaissm datafile '/oracle/aissm/aissm01.dbf' size 2048M autoe
 create user aissm identified by aissm default tablespace tbsaissm temporary tablespace temp;
 grant create session to aissm;
 grant dba to aissm;
-firewall-cmd --permanent --add-port=1521/tcp
 systemctl start firewalld.service
+firewall-cmd --permanent --add-port=1521/tcp
+firewall-cmd --reload
 
