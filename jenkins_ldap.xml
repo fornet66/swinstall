@@ -1,0 +1,21 @@
+
+<useSecurity>false</useSecurity>
+<authorizationStrategy class="hudson.security.ProjectMatrixAuthorizationStrategy"/>
+<securityRealm class="hudson.security.LDAPSecurityRealm" plugin="ldap@1.11">
+	<server>ldap://ldap.asiainfo.com</server>
+	<rootDN>ou=asiainfo-users,dc=ai,dc=com</rootDN>
+	<inhibitInferRootDN>false</inhibitInferRootDN>
+	<userSearchBase></userSearchBase>
+	<userSearch>sAMAccountName={0}</userSearch>
+	<groupMembershipStrategy class="jenkins.security.plugins.ldap.FromGroupSearchLDAPGroupMembershipStrategy">
+		<filter></filter>
+	</groupMembershipStrategy>
+	<managerDN>ai\cmcssm</managerDN>
+	<managerPasswordSecret>ybJAEUBR74UYS8Ujy5k30FB8ztTEd/KU4wsBKZM75FI=</managerPasswordSecret>
+	<disableMailAddressResolver>false</disableMailAddressResolver>
+	<displayNameAttributeName>displayname</displayNameAttributeName>
+	<mailAddressAttributeName>mail</mailAddressAttributeName>
+	<userIdStrategy class="jenkins.model.IdStrategy$CaseInsensitive"/>
+	<groupIdStrategy class="jenkins.model.IdStrategy$CaseInsensitive"/>
+</securityRealm>
+
