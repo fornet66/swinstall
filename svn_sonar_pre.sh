@@ -61,6 +61,18 @@ SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.projectKey="$PROJECT_KEY
 SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.projectName="$PROJET_KEY
 SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.projectVersion=1.0"
 
+sonar-runner -Dsonar.analysis.mode=incremental \
+	-Dsonar.projectKey=upload \
+	-Dsonar.projectName=upload \
+	-Dsonar.projectVersion=1.0 \
+-Dsonar.projectBaseDir=/home/xienan/work/products/ibs/bms/upload
+-Dsonar.sources=src \
+			    -Dsonar.working.directory=/home/xienan/sonar_runner_work \
+				    -Dsonar.issuesReport.html.enable=true \
+					    -Dsonar.issuesReport.lightModeOnly \
+						    -Dsonar.issuesReport.html.location=/home/xienan/sonar_runner_work \
+							    -Dsonar.issuesReport.html.name=upload.htm
+
 MODE="-t"
 REPOS="$1"
 TXN="$2"
