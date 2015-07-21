@@ -40,8 +40,15 @@ syntaxexit() {
   exit 1
 }
 
-export JAVA_HOME=`getconfig "/tmp/sonar.ini" "JAVA_HOME"`
-export SONAR_RUNNER_HOME=`getconfig "/tmp/sonar.ini" "SONAR_RUNNER_HOME"`
+echo `pwd` > /tmp/svn.log
+
+CONFIG=./config.ini
+export JAVA_HOME=`getconfig $CONFIG "JAVA_HOME"`
+export SONAR_RUNNER_HOME=`getconfig $SONAR_RUNNER_HOME "SONAR_RUNNER_HOME"`
+export PROVINCE_CODE=`getconfig $CONFIG "RPOVINCE_CODE"`
+export PROJECT_LIST=`getconfig $CONFIG "PROJECT_LIST"`
+export PATH=$PATH:$JAVA_HOME/bin:$SONAR_RUNNER_HOME/bin
+export CLASSPATH=$CLASSPATH:$JAVA_HOME/lib:$JAVA_HOME/jre/lib
 export SONAR_RUNNER_OPTS="-Xmx512m -XX:MaxPermSize=512m"
 SYNTAX_CMD=$SONAR_RUNNER_HOME/bin/sonar-runner
 SYNTAX_ARGS="-Dsonar.analysis.mode=incremental"
