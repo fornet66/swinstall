@@ -40,43 +40,25 @@ syntaxexit() {
   exit 1
 }
 
-echo `pwd` > /tmp/svn.log
+echo "working dir = " `pwd` > /tmp/svn.log
 
 CONFIG=./config.ini
 export JAVA_HOME=`getconfig $CONFIG "JAVA_HOME"`
 export SONAR_RUNNER_HOME=`getconfig $SONAR_RUNNER_HOME "SONAR_RUNNER_HOME"`
-export PROVINCE_CODE=`getconfig $CONFIG "RPOVINCE_CODE"`
-export PROJECT_LIST=`getconfig $CONFIG "PROJECT_LIST"`
 export PATH=$PATH:$JAVA_HOME/bin:$SONAR_RUNNER_HOME/bin
 export CLASSPATH=$CLASSPATH:$JAVA_HOME/lib:$JAVA_HOME/jre/lib
 export SONAR_RUNNER_OPTS="-Xmx512m -XX:MaxPermSize=512m"
+PROVINCE_CODE=`getconfig $CONFIG "RPOVINCE_CODE"`
+PROJECT_LIST=(`getconfig $CONFIG "PROJECT_LIST"`)
 SYNTAX_CMD=$SONAR_RUNNER_HOME/bin/sonar-runner
-SYNTAX_ARGS="-Dsonar.analysis.mode=incremental"
+SYNTAX_ARGS="-Dsonar.analysis.mode=preview"
 SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.sources=./"
-SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.issuesReport.html.enable=true"
-SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.issuesReport.lightModeOnly"
-SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.issuesReport.html.location=./"
-SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.issuesReport.html.name="$PROJECT_KEY".html"
-SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.projectKey="$PROJECT_KEY
-SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.projectName="$PROJET_KEY
-SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.projectVersion=1.0"
-
-sonar-runner -Dsonar.analysis.mode=incremental \
-	-Dsonar.projectKey=upload \
-	-Dsonar.projectName=upload \
-	-Dsonar.projectVersion=1.0 \
--Dsonar.projectBaseDir=/home/xienan/work/products/ibs/bms/upload
--Dsonar.sources=src \
-			    -Dsonar.working.directory=/home/xienan/sonar_runner_work \
-				    -Dsonar.issuesReport.html.enable=true \
-					    -Dsonar.issuesReport.lightModeOnly \
-						    -Dsonar.issuesReport.html.location=/home/xienan/sonar_runner_work \
-							    -Dsonar.issuesReport.html.name=upload.htm
+SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.working.directory=./"
 
 MODE="-t"
 REPOS="$1"
 TXN="$2"
-FLANG=JAVA
+FLANG=JAVA,CPP
 FPATTERN="\.\(java\)$"
 [ -z "$SVNLOOK" ] && SVNLOOK=/bin/svnlook
 [ -z "$LOG" ] && LOG=`$SVNLOOK log $MODE "$TXN" "$REPOS"`
@@ -84,6 +66,10 @@ FPATTERN="\.\(java\)$"
 [ -z "$AUTHOR" ] && AUTHOR=`$SVNLOOK author $MODE "$TXN" "$REPOS"`
 [ -z "$CHANGEDFILES" ] && CHANGEDFILES=`$SVNLOOK changed $MODE "$TXN" "$REPOS"`
 [ -z "$SYNTAXENABLED" ] && SYNTAXENABLED="1"
+
+STAT_CMD=`which java`
+STAT_ARGS="-Dprovince=$PROVINCE_CODE"
+STAT_ARGS=$STAT_ARGS" -Dauthor=$AUTHOR"
 
 if [ "$SYNTAXENABLED" == "1" ]; then
   # allow selective bypass of syntax check for commits
@@ -103,8 +89,7 @@ if [ "$SYNTAXENABLED" == "1" ]; then
     [ -d $WORKING ] && rm -rf $WORKING
     mkdir $WORKING || syntaxexit "failed to create temp dir for syntax check: $WORKING"
     cd $WORKING
-
-    SYNTAX_ARGS=$SYNTAX_ARGS"-Dsonar.projectBaseDir=/tmp/"$WORKING
+    SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.projectBaseDir=/tmp/"$WORKING
 
     # export changed files (no dirs) from local repo (speed)
     IFS=$'\n'
@@ -116,18 +101,34 @@ if [ "$SYNTAXENABLED" == "1" ]; then
       # only export modified and deleted files. new files wont exist in repo yet
       if [ "$FSTATUS" == "U" ] || [ "$FSTATUS" == "UU" ] || [ "$FSTATUS" == "A" ]; then
         if [ -z "$PROJECT_KEY" ]; then
-          pos=`expr index $str "/"`
-          pos=`expr pos - 1`
-          PROJECT_KEY=echo ${FNAME:0:pos}
+		  fkey=${FNAME%%/*}
+		  for i in ${PROJECT_LIST[@]}
+		  do
+			  key=${i%:*}
+			  ver=${i#*:}
+			  if [ "fkey" == "$key" ]; then
+				  PROJECT_KEY=$key
+				  PROJECT_VER=$ver
+				  SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.projectKey="$PROJECT_KEY
+				  SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.projectName="$PROJET_KEY
+				  SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.projectVersion="$PROJECT_VER
+				  STAT_ARGS=$STAT_ARGS" -Dproject="$PROJET_KEY
+				  STAT_ARGS=$STAT_ARGS" -Dversion="$PROJECT_VER
+				  break;
+			  fi
+		  done
         fi
         FILEDIR=$(dirname $FNAME)
-	mkdir -p $FILEDIR
+		mkdir -p $FILEDIR
         $SVNLOOK cat $MODE "$TXN" "$REPOS" $FNAME > $WORKING/$FNAME
       fi
     done
 
+	echo $PROJECT_KEY > $WORKING/PROJECT
+	echo $PROJECT_VER > $WORKING/VERSION
 	echo $AUTHOR > $WORKING/AUTHOR
     SYNTAXERROR=`$SYNTAX_CMD $SYNTAX_ARGS 2> $WORKING/sonar.STDERR`
+	SYNTAXERROR=`$STAT_CMD $STAT_ARGS 2> $WORKING/stat.STDERR`
     SYNTAXRETURN=$?
   fi
 #  syntaxclean $WORKING
