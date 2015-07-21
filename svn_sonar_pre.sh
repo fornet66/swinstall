@@ -40,16 +40,15 @@ syntaxexit() {
   exit 1
 }
 
-echo "working dir = " `pwd` > /tmp/svn.log
-
-CONFIG=./config.ini
+CONFIG=/home/aissm/SonarCheck/config.properties
 export JAVA_HOME=`getconfig $CONFIG "JAVA_HOME"`
-export SONAR_RUNNER_HOME=`getconfig $SONAR_RUNNER_HOME "SONAR_RUNNER_HOME"`
+export SONAR_RUNNER_HOME=`getconfig $CONFIG "SONAR_RUNNER_HOME"`
 export PATH=$PATH:$JAVA_HOME/bin:$SONAR_RUNNER_HOME/bin
 export CLASSPATH=$CLASSPATH:$JAVA_HOME/lib:$JAVA_HOME/jre/lib
 export SONAR_RUNNER_OPTS="-Xmx512m -XX:MaxPermSize=512m"
-PROVINCE_CODE=`getconfig $CONFIG "RPOVINCE_CODE"`
-PROJECT_LIST=(`getconfig $CONFIG "PROJECT_LIST"`)
+PROVINCE_CODE=`getconfig $CONFIG "PROVINCE_CODE"`
+PROJECT_LIST=`getconfig $CONFIG "PROJECT_LIST"`
+PROJECT_ARRAY=(${PROJECT_LIST/|/ })
 SYNTAX_CMD=$SONAR_RUNNER_HOME/bin/sonar-runner
 SYNTAX_ARGS="-Dsonar.analysis.mode=preview"
 SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.sources=./"
@@ -70,6 +69,7 @@ FPATTERN="\.\(java\)$"
 STAT_CMD=`which java`
 STAT_ARGS="-Dprovince=$PROVINCE_CODE"
 STAT_ARGS=$STAT_ARGS" -Dauthor=$AUTHOR"
+STAT_JAR="-jar ReportAnalysis.jar"
 
 if [ "$SYNTAXENABLED" == "1" ]; then
   # allow selective bypass of syntax check for commits
@@ -101,36 +101,36 @@ if [ "$SYNTAXENABLED" == "1" ]; then
       # only export modified and deleted files. new files wont exist in repo yet
       if [ "$FSTATUS" == "U" ] || [ "$FSTATUS" == "UU" ] || [ "$FSTATUS" == "A" ]; then
         if [ -z "$PROJECT_KEY" ]; then
-		  fkey=${FNAME%%/*}
-		  for i in ${PROJECT_LIST[@]}
-		  do
-			  key=${i%:*}
-			  ver=${i#*:}
-			  if [ "fkey" == "$key" ]; then
-				  PROJECT_KEY=$key
-				  PROJECT_VER=$ver
-				  SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.projectKey="$PROJECT_KEY
-				  SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.projectName="$PROJET_KEY
-				  SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.projectVersion="$PROJECT_VER
-				  STAT_ARGS=$STAT_ARGS" -Dproject="$PROJET_KEY
-				  STAT_ARGS=$STAT_ARGS" -Dversion="$PROJECT_VER
-				  break;
-			  fi
-		  done
+          fkey=${FNAME%%/*}
+	  for i in ${PROJECT_ARRAY[@]}
+	  do
+            key=${i%:*}
+            ver=${i#*:}
+            if [ "fkey" == "$key" ]; then
+              PROJECT_KEY=$key
+              PROJECT_VER=$ver
+              SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.projectKey="$PROJECT_KEY
+              SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.projectName="$PROJET_KEY
+              SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.projectVersion="$PROJECT_VER
+              STAT_ARGS=$STAT_ARGS" -Dproject="$PROJET_KEY
+              STAT_ARGS=$STAT_ARGS" -Dversion="$PROJECT_VER
+              break;
+          fi
+        done
         fi
         FILEDIR=$(dirname $FNAME)
-		mkdir -p $FILEDIR
+        mkdir -p $FILEDIR
         $SVNLOOK cat $MODE "$TXN" "$REPOS" $FNAME > $WORKING/$FNAME
       fi
     done
 
-	echo $PROJECT_KEY > $WORKING/PROJECT
-	echo $PROJECT_VER > $WORKING/VERSION
-	echo $AUTHOR > $WORKING/AUTHOR
+    echo $PROJECT_KEY > $WORKING/PROJECT
+    echo $PROJECT_VER > $WORKING/VERSION
+    echo $AUTHOR > $WORKING/AUTHOR
     SYNTAXERROR=`$SYNTAX_CMD $SYNTAX_ARGS 2> $WORKING/sonar.STDERR`
-	SYNTAXERROR=`$STAT_CMD $STAT_ARGS 2> $WORKING/stat.STDERR`
+    SYNTAXERROR=`$STAT_CMD $STAT_ARGS $STAT_JAR 2> $WORKING/stat.STDERR`
     SYNTAXRETURN=$?
   fi
-#  syntaxclean $WORKING
+  syntaxclean $WORKING
 fi
 
