@@ -12,6 +12,37 @@
 #
 # Requires bash 3.x or higher.
 #
+real_path () {
+  OIFS=$IFS
+  IFS='/'
+  for I in $1
+  do
+    # Resolve relative path punctuation.
+    if [ "$I" = "." ] || [ -z "$I" ]
+      then continue
+    elif [ "$I" = ".." ]
+      then FOO="${FOO%%/${FOO##*/}}"
+           continue
+      else FOO="${FOO}/${I}"
+    fi
+
+    # Dereference symbolic links.
+    if [ -h "$FOO" ] && [ -x "/bin/ls" ]
+      then IFS=$OIFS
+           set `/bin/ls -l "$FOO"`
+           while shift ;
+           do
+             if [ "$1" = "->" ]
+               then FOO=$2
+                    shift $#
+                    break
+             fi
+           done
+    fi
+  done
+  IFS=$OIFS
+  echo "$FOO"
+}
 
 getconfig() {
   FILE=$1
@@ -40,7 +71,12 @@ syntaxexit() {
   exit 1
 }
 
-CONFIG=/home/sonarqube/sonar_check/conf/check.Properties
+PRG="$0"
+if [ -h "$PRG" ] ; then
+  # resolve symlinks
+  PRG=`real_path "$PRG"`
+fi
+CONFIG=`dirname "$PRG"`/conf/check.Properties
 export JAVA_HOME=`getconfig $CONFIG "JAVA_HOME"`
 export SONAR_RUNNER_HOME=`getconfig $CONFIG "SONAR_RUNNER_HOME"`
 export PATH=$PATH:$JAVA_HOME/bin:$SONAR_RUNNER_HOME/bin
@@ -49,11 +85,6 @@ export SONAR_RUNNER_OPTS="-Xmx512m -XX:MaxPermSize=512m"
 PROVINCE_CODE=`getconfig $CONFIG "PROVINCE_CODE"`
 PROJECT_LIST=`getconfig $CONFIG "PROJECT_LIST"`
 PROJECT_ARRAY=(${PROJECT_LIST/|/ })
-
-    echo $JAVA_HOME >/tmp/svn.log
-    echo $SONAR_RUNNER_HOME >>/tmp/svn.log
-    echo $PROVINCE_CODE >>/tmp/svn.log
-    echo $PROJECT_LIST >>/tmp/svn.log
 
 MODE="-t"
 REPOS="$1"
@@ -112,11 +143,7 @@ if [ "$SYNTAXENABLED" == "1" ]; then
 	  do
             key=${i%:*}
             ver=${i#*:}
-echo "fkey="$fkey >>/tmp/svn.log
-echo "key="$key >>/tmp/svn.log
-echo "ver="$ver >>/tmp/svn.log
             if [ "$fkey" == "$key" ]; then
-echo "gogogo" >> /tmp/svn.log
               PROJECT_KEY=$key
               PROJECT_VER=$ver
               SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.projectKey="$PROJECT_KEY
@@ -138,8 +165,6 @@ echo "gogogo" >> /tmp/svn.log
     echo $PROJECT_VER > $WORKING/VERSION
     echo $AUTHOR > $WORKING/AUTHOR
 
-    echo $SYNTAX_CMD $SYNTAX_ARGS >>/tmp/svn.log
-    echo $STAT_CMD $STAT_ARGS $STAT_JAR >>/tmp/svn.log
     cd $WORKING
     SYNTAXERROR=`$SYNTAX_CMD $SYNTAX_ARGS 2> $WORKING/sonar.STDERR`
     cd $WORKING/report
