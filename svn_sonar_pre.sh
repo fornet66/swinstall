@@ -40,7 +40,7 @@ syntaxexit() {
   exit 1
 }
 
-CONFIG=/home/aissm/SonarCheck/config.properties
+CONFIG=/home/sonarqube/sonar_check/conf/check.Properties
 export JAVA_HOME=`getconfig $CONFIG "JAVA_HOME"`
 export SONAR_RUNNER_HOME=`getconfig $CONFIG "SONAR_RUNNER_HOME"`
 export PATH=$PATH:$JAVA_HOME/bin:$SONAR_RUNNER_HOME/bin
@@ -49,10 +49,11 @@ export SONAR_RUNNER_OPTS="-Xmx512m -XX:MaxPermSize=512m"
 PROVINCE_CODE=`getconfig $CONFIG "PROVINCE_CODE"`
 PROJECT_LIST=`getconfig $CONFIG "PROJECT_LIST"`
 PROJECT_ARRAY=(${PROJECT_LIST/|/ })
-SYNTAX_CMD=$SONAR_RUNNER_HOME/bin/sonar-runner
-SYNTAX_ARGS="-Dsonar.analysis.mode=preview"
-SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.sources=./"
-SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.working.directory=./"
+
+    echo $JAVA_HOME >/tmp/svn.log
+    echo $SONAR_RUNNER_HOME >>/tmp/svn.log
+    echo $PROVINCE_CODE >>/tmp/svn.log
+    echo $PROJECT_LIST >>/tmp/svn.log
 
 MODE="-t"
 REPOS="$1"
@@ -66,10 +67,13 @@ FPATTERN="\.\(java\)$"
 [ -z "$CHANGEDFILES" ] && CHANGEDFILES=`$SVNLOOK changed $MODE "$TXN" "$REPOS"`
 [ -z "$SYNTAXENABLED" ] && SYNTAXENABLED="1"
 
-STAT_CMD=`which java`
+SYNTAX_CMD=$SONAR_RUNNER_HOME/bin/sonar-runner
+SYNTAX_ARGS="-Dsonar.analysis.mode=preview"
+
+STAT_CMD=$JAVA_HOME/bin/java
 STAT_ARGS="-Dprovince=$PROVINCE_CODE"
 STAT_ARGS=$STAT_ARGS" -Dauthor=$AUTHOR"
-STAT_JAR="-jar ReportAnalysis.jar"
+STAT_JAR="-jar /home/sonarqube/sonar_check/AnalysisReportplugin-1.0.jar"
 
 if [ "$SYNTAXENABLED" == "1" ]; then
   # allow selective bypass of syntax check for commits
@@ -89,7 +93,9 @@ if [ "$SYNTAXENABLED" == "1" ]; then
     [ -d $WORKING ] && rm -rf $WORKING
     mkdir $WORKING || syntaxexit "failed to create temp dir for syntax check: $WORKING"
     cd $WORKING
-    SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.projectBaseDir=/tmp/"$WORKING
+    SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.projectBaseDir="${WORKING}"/check"
+    SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.sources=."
+    SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.working.directory="${WORKING}"/report"
 
     # export changed files (no dirs) from local repo (speed)
     IFS=$'\n'
@@ -106,28 +112,37 @@ if [ "$SYNTAXENABLED" == "1" ]; then
 	  do
             key=${i%:*}
             ver=${i#*:}
-            if [ "fkey" == "$key" ]; then
+echo "fkey="$fkey >>/tmp/svn.log
+echo "key="$key >>/tmp/svn.log
+echo "ver="$ver >>/tmp/svn.log
+            if [ "$fkey" == "$key" ]; then
+echo "gogogo" >> /tmp/svn.log
               PROJECT_KEY=$key
               PROJECT_VER=$ver
               SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.projectKey="$PROJECT_KEY
-              SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.projectName="$PROJET_KEY
+              SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.projectName="$PROJECT_KEY
               SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.projectVersion="$PROJECT_VER
-              STAT_ARGS=$STAT_ARGS" -Dproject="$PROJET_KEY
+              STAT_ARGS=$STAT_ARGS" -Dproject="$PROJECT_KEY
               STAT_ARGS=$STAT_ARGS" -Dversion="$PROJECT_VER
               break;
           fi
         done
         fi
         FILEDIR=$(dirname $FNAME)
-        mkdir -p $FILEDIR
-        $SVNLOOK cat $MODE "$TXN" "$REPOS" $FNAME > $WORKING/$FNAME
+        mkdir -p check/$FILEDIR
+        $SVNLOOK cat $MODE "$TXN" "$REPOS" $FNAME > $WORKING/check/$FNAME
       fi
     done
 
     echo $PROJECT_KEY > $WORKING/PROJECT
     echo $PROJECT_VER > $WORKING/VERSION
     echo $AUTHOR > $WORKING/AUTHOR
+
+    echo $SYNTAX_CMD $SYNTAX_ARGS >>/tmp/svn.log
+    echo $STAT_CMD $STAT_ARGS $STAT_JAR >>/tmp/svn.log
+    cd $WORKING
     SYNTAXERROR=`$SYNTAX_CMD $SYNTAX_ARGS 2> $WORKING/sonar.STDERR`
+    cd $WORKING/report
     SYNTAXERROR=`$STAT_CMD $STAT_ARGS $STAT_JAR 2> $WORKING/stat.STDERR`
     SYNTAXRETURN=$?
   fi
