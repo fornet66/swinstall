@@ -59,11 +59,6 @@ PROVINCE_CODE=`getconfig $CONFIG "PROVINCE_CODE"`
 PROJECT_LIST=`getconfig $CONFIG "PROJECT_LIST"`
 PROJECT_ARRAY=(${PROJECT_LIST/|/ })
 
-    echo $JAVA_HOME >/tmp/svn.log
-    echo $SONAR_RUNNER_HOME >>/tmp/svn.log
-    echo $PROVINCE_CODE >>/tmp/svn.log
-    echo $PROJECT_LIST >>/tmp/svn.log
-
 MODE="-t"
 REPOS="$1"
 TXN="$2"
@@ -121,11 +116,7 @@ if [ "$SYNTAXENABLED" == "1" ]; then
 	  do
             key=${i%:*}
             ver=${i#*:}
-echo "fkey="$fkey >>/tmp/svn.log
-echo "key="$key >>/tmp/svn.log
-echo "ver="$ver >>/tmp/svn.log
             if [ "$fkey" == "$key" ]; then
-echo "gogogo" >> /tmp/svn.log
               PROJECT_KEY=$key
               PROJECT_VER=$ver
               SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.projectKey="$PROJECT_KEY
@@ -146,9 +137,9 @@ echo "gogogo" >> /tmp/svn.log
     echo $PROJECT_KEY > $WORKING/PROJECT
     echo $PROJECT_VER > $WORKING/VERSION
     echo $AUTHOR > $WORKING/AUTHOR
+    echo $SYNTAX_CMD $SYNTAX_ARGS > $WORKING/SONAR
+    echo $STAT_CMD $STAT_ARGS $STAT_JAR > $WORKING/STAT
 
-    echo $SYNTAX_CMD $SYNTAX_ARGS >>/tmp/svn.log
-    echo $STAT_CMD $STAT_ARGS $STAT_JAR >>/tmp/svn.log
     cd $WORKING
     SYNTAXERROR=`$SYNTAX_CMD $SYNTAX_ARGS 2> $WORKING/sonar.STDERR`
     cd $WORKING/report
