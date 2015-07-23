@@ -7,12 +7,11 @@
 # functionality intended to be invoked from a subversion pre-commit
 # hook.
 #
-# Invocation: /path/to/SonarCheck $1 $2
-#         or: source SonarCheck
+# Invocation: /path/to/svn_sonar_pre.sh $1 $2
+#         or: source svn_sonar_pre.sh
 #
 # Requires bash 3.x or higher.
 #
-
 getconfig() {
   FILE=$1
   KEY=$2
@@ -40,7 +39,17 @@ syntaxexit() {
   exit 1
 }
 
-CONFIG=/home/sonarqube/sonar_check/conf/check.Properties
+PRG="$0"
+if [ -h "$PRG" ] ; then
+  # resolve symlinks
+  PRG=$(readlink -f "$PRG")
+fi
+PRG_HOME=$(dirname "$PRG")
+CONFIG=$PRG_HOME/conf/check.Properties
+if [ ! -f "$CONFIG" ]; then
+	echo "config file does not exist"
+	exit 0
+fi
 export JAVA_HOME=`getconfig $CONFIG "JAVA_HOME"`
 export SONAR_RUNNER_HOME=`getconfig $CONFIG "SONAR_RUNNER_HOME"`
 export PATH=$PATH:$JAVA_HOME/bin:$SONAR_RUNNER_HOME/bin
@@ -73,7 +82,7 @@ SYNTAX_ARGS="-Dsonar.analysis.mode=preview"
 STAT_CMD=$JAVA_HOME/bin/java
 STAT_ARGS="-Dprovince=$PROVINCE_CODE"
 STAT_ARGS=$STAT_ARGS" -Dauthor=$AUTHOR"
-STAT_JAR="-jar /home/sonarqube/sonar_check/AnalysisReportplugin-1.0.jar"
+STAT_JAR="-jar $PRG_HOME/AnalysisReportplugin-1.0.jar"
 
 if [ "$SYNTAXENABLED" == "1" ]; then
   # allow selective bypass of syntax check for commits
@@ -146,6 +155,6 @@ echo "gogogo" >> /tmp/svn.log
     SYNTAXERROR=`$STAT_CMD $STAT_ARGS $STAT_JAR 2> $WORKING/stat.STDERR`
     SYNTAXRETURN=$?
   fi
-  syntaxclean $WORKING
+#  syntaxclean $WORKING
 fi
 
