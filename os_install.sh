@@ -5,6 +5,8 @@ hostnamectl status
 
 fdisk -l
 fdisk /dev/vdb
+cat /proc/partitions
+partprobe /dev/vdb
 
 pvcreate /dev/vdb1 /dev/vdb2
 pvdisplay
@@ -61,4 +63,7 @@ uncomment /home/pam.d/su   auth            required        pam_wheel.so use_uid 
 useradd xienan
 usermod -G wheel xienan
 
+
+
+10.1.234.47/48/49		root/cucqc@123
 

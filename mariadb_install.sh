@@ -10,6 +10,8 @@ setenforce 0
 # change enforcing to disabled
 sed -i "s/SELINUX=enforcing/SELINUX=disabled/" /etc/selinux/config
 
+mysql -u root -p admin
+
 systemctl start mariadb.service
 mysql_secure_installation
 firewall-cmd --add-service=mysql --permanent
