@@ -66,4 +66,5 @@ usermod -G wheel xienan
 
 
 10.1.234.47/48/49		root/cucqc@123
+10.1.234.50/51/52/53	root/robot@123
 
