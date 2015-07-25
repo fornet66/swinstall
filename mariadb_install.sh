@@ -11,6 +11,8 @@ setenforce 0
 sed -i "s/SELINUX=enforcing/SELINUX=disabled/" /etc/selinux/config
 
 mysql -u root -p admin
+grant all privileges on *.* to 'root'@'%' identified by 'admin' with grant option;
+flush all privileges;
 
 systemctl start mariadb.service
 mysql_secure_installation
