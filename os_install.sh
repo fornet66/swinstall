@@ -31,6 +31,10 @@ mount /dev/scmvg/scmlv2 /svnroot
 useradd oracle
 useradd git
 useradd svnroot
+echo "as1a1nf0" | passwd --stdin oracle
+echo "as1a1nf0" | passwd --stdin git
+echo "as1a1nf0" | passwd --stdin svnroot
+
 
 chown mysql:mysql /mariadb
 chown oracle:oracle /oracle
@@ -62,9 +66,9 @@ systemctl --failed
 uncomment /home/pam.d/su   auth            required        pam_wheel.so use_uid to disable su command
 useradd xienan
 usermod -G wheel xienan
-
+echo "as1a1nf0" | passwd --stdin xienan
 
 
 10.1.234.47/48/49		root/cucqc@123
-10.1.234.50/51/52/53	root/robot@123
+10.1.234.50/51/52/54	root/robot@123
 

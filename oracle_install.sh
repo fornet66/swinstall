@@ -36,26 +36,26 @@ net.core.wmem_default = 262144
 net.core.wmem_max = 1048576
 EOF
 
-yum install glibc.i686
-yum install glibc-devel.i686
-yum install compat-libstdc++-33
-yum install compat-libstdc++-33.i686
-yum install compat-gcc-44-c++
-yum install libgcc.i686
-yum install elfutils-libelf-devel
-yum install libaio-devel
-yum install libaio.i686
-yum install libaio-devel.i686
-yum install libXp
-yum install glibc-kernheaders
-yum install compat-db
-yum install control-center
-yum install unixODBC
-yum install unixODBC-devel
-yum install unixODBC.i686
-yum install unixODBC-devel.i686
+yum install glibc.i686 -y
+yum install glibc-devel.i686 -y
+yum install compat-libstdc++-33 -y
+yum install compat-libstdc++-33.i686 -y
+yum install compat-gcc-44-c++ -y
+yum install libgcc.i686 -y
+yum install elfutils-libelf-devel -y
+yum install libaio-devel -y
+yum install libaio.i686 -y
+yum install libaio-devel.i686 -y
+yum install libXp -y
+yum install glibc-kernheaders -y
+yum install compat-db -y
+yum install control-center -y
+yum install unixODBC -y
+yum install unixODBC-devel -y
+yum install unixODBC.i686 -y
+yum install unixODBC-devel.i686 -y
 wget http://mirror.centos.org/centos/5/os/x86_64/CentOS/pdksh-5.2.14-37.el5_8.1.x86_64.rpm
-yum localinstall pdksh-5.2.14-37.el5_8.1.x86_64.rpm
+yum localinstall pdksh-5.2.14-37.el5_8.1.x86_64.rpm -y
 
 
 systemctl stop firewalld.service
