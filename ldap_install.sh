@@ -20,3 +20,6 @@ authconfig --enableldap \
 	--enablemkhomedir \
 	--update
 
+
+binddn ai\cmcssm
+bindpw 15!cyhl
