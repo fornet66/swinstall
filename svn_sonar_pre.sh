@@ -55,7 +55,7 @@ export SONAR_RUNNER_HOME=`getconfig $CONFIG "SONAR_RUNNER_HOME"`
 export PATH=$PATH:$JAVA_HOME/bin:$SONAR_RUNNER_HOME/bin
 export CLASSPATH=$CLASSPATH:$JAVA_HOME/lib:$JAVA_HOME/jre/lib
 export SONAR_RUNNER_OPTS="-Xmx512m -XX:MaxPermSize=512m"
-PROVINCE_CODE=`getconfig $CONFIG "PROVINCE_CODE"`
+DEPARTMENT=`getconfig $CONFIG "DEPARTMENT"`
 PROJECT_LIST=`getconfig $CONFIG "PROJECT_LIST"`
 PROJECT_ARRAY=(${PROJECT_LIST/|/ })
 
@@ -71,11 +71,16 @@ FPATTERN="\.\(java\)$"
 [ -z "$CHANGEDFILES" ] && CHANGEDFILES=`$SVNLOOK changed $MODE "$TXN" "$REPOS"`
 [ -z "$SYNTAXENABLED" ] && SYNTAXENABLED="1"
 
+# sonar check
 SYNTAX_CMD=$SONAR_RUNNER_HOME/bin/sonar-runner
 SYNTAX_ARGS="-Dsonar.analysis.mode=preview"
 
+# lines check
+LRPT_FILE=lines-report.json
+
+# stat indb
 STAT_CMD=$JAVA_HOME/bin/java
-STAT_ARGS="-Dprovince=$PROVINCE_CODE"
+STAT_ARGS="-Ddepartment=$DEPARTMENT"
 STAT_ARGS=$STAT_ARGS" -Dauthor=$AUTHOR"
 STAT_JAR="-jar $PRG_HOME/AnalysisReportplugin-1.0.jar"
 
@@ -101,6 +106,7 @@ if [ "$SYNTAXENABLED" == "1" ]; then
     SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.sources=."
     SYNTAX_ARGS=$SYNTAX_ARGS" -Dsonar.working.directory="${WORKING}"/report"
 
+    STEP=1
     # export changed files (no dirs) from local repo (speed)
     IFS=$'\n'
     for LINE in $MATCHCHANGED; do
@@ -112,8 +118,8 @@ if [ "$SYNTAXENABLED" == "1" ]; then
       if [ "$FSTATUS" == "U" ] || [ "$FSTATUS" == "UU" ] || [ "$FSTATUS" == "A" ]; then
         if [ -z "$PROJECT_KEY" ]; then
           fkey=${FNAME%%/*}
-	  for i in ${PROJECT_ARRAY[@]}
-	  do
+          for i in ${PROJECT_ARRAY[@]}
+          do
             key=${i%:*}
             ver=${i#*:}
             if [ "$fkey" == "$key" ]; then
@@ -125,12 +131,23 @@ if [ "$SYNTAXENABLED" == "1" ]; then
               STAT_ARGS=$STAT_ARGS" -Dproject="$PROJECT_KEY
               STAT_ARGS=$STAT_ARGS" -Dversion="$PROJECT_VER
               break;
-          fi
-        done
+            fi
+          done
         fi
         FILEDIR=$(dirname $FNAME)
         mkdir -p check/$FILEDIR
         $SVNLOOK cat $MODE "$TXN" "$REPOS" $FNAME > $WORKING/check/$FNAME
+        LINES=`cat $WORKING/check/$FNAME | wc -l`
+        if [ $STEP -eq 1 ]; then
+          echo '{ "lines report": [' >> $LRPT_FILE
+        fi
+        if [ $STEP -eq $NUMMATCHCHANGED ]; then
+          echo '{ "file":"'${FNAME}'", "lines":"'${LINES}'" }' >> $LRPT_FILE
+          echo ']}' >> $LRPT_FILE
+        else
+          echo '{ "file":"'${FNAME}'", "lines":"'${LINES}'" },' >> $LRPT_FILE
+        fi
+        STEP=$(( $STEP + 1 ))
       fi
     done
 
@@ -142,10 +159,11 @@ if [ "$SYNTAXENABLED" == "1" ]; then
 
     cd $WORKING
     SYNTAXERROR=`$SYNTAX_CMD $SYNTAX_ARGS 2> $WORKING/sonar.STDERR`
+    mv $WORKING/$LRPT_FILE $WORKING/report/$LRPT_FILE
     cd $WORKING/report
     SYNTAXERROR=`$STAT_CMD $STAT_ARGS $STAT_JAR 2> $WORKING/stat.STDERR`
     SYNTAXRETURN=$?
   fi
-#  syntaxclean $WORKING
+  syntaxclean $WORKING
 fi
 
