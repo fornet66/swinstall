@@ -58,4 +58,11 @@
 		<activeProfile>nexus-profile</activeProfile>
 	</activeProfiles>
 
+	<distributionManagement>
+		<repository>
+			<id>releases</id>
+			<url>http://cmcssm.asiainfo.com/nexus/content/repositories/releases</url>
+		</repository>
+	</distributionManagement>
+
 </settings>
