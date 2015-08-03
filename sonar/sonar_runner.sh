@@ -27,4 +27,6 @@ sonar-runner -Dsonar.analysis.mode=preview \
 	-Dsonar.working.directory=/home/xienan/temp/sonar_runner_work
 java -Ddepartment=010 -Dauthor=xienan -Dproject=np -Dversion=2.0 -jar AnalysisReportplugin-1.0.jar
 
+java -Ddepartment=010 -Ddate=20150802 -jar SonarStat-1.0.jar
+
 
