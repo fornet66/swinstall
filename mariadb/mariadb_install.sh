@@ -24,3 +24,8 @@ systemctl start mariadb.service
 mysql_secure_installation
 firewall-cmd --add-service=mysql --permanent
 
+CREATE DATABASE aitest DEFAULT CHARACTER SET utf8;
+create user 'aitest'@'%' identified by 'aitest';
+grant all privileges on aitest.* to 'aitest'@'%';
+flush all privileges;
+
