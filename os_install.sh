@@ -72,3 +72,6 @@ echo "as1a1nf0" | passwd --stdin xienan
 10.1.234.47/48/49		root/cucqc@123
 10.1.234.50/51/52/54	root/robot@123
 
+
+tar czf - unibss | openssl des3 -salt -k unibss_dev -out /home/cvsroot/cvsbak/rd2_unibss_$DATE.tgz
+
