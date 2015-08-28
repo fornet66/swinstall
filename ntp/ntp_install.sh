@@ -9,3 +9,10 @@ date -s 10:38
 ntpq -c version
 ntpq -p
 
+# jvm use /etc/sysconfig/clock for time calc
+cat << EOF >> /etc/sysconfig/clock
+ZONE="Asia/Shanghai"
+UTC=false
+ARC=false
+EOF
+
