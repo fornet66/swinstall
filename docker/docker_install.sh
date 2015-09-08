@@ -8,6 +8,7 @@ docker run hello-world
 
 #modify /usr/lib/systemd/system/docker.service
 systemctl daemon-reload
+systemctl start docker.service
 docker run -d --name mysql1 mysql
 PID=`docker  inspect  --format "{{ .State.Pid }}"  mysql1`
 nsenter --target $PID --mount --uts --ipc --net --pid
