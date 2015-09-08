@@ -1,0 +1,22 @@
+# Gogs - Go Git Service
+#
+# VERSION       0.6.1
+# use the centos base image provided by docker
+FROM centos
+
+MAINTAINER xienan xienan@asiainfo.com
+
+# make sure the package repository is up to date
+RUN echo 'root:fornet66' | chpasswd
+RUN yum install -y java-1.7.0-openjdk git; useradd --uid 1004 git
+COPY ./gogs /home/git/gogs
+RUN chown -R git:git /home/git/gogs
+
+WORKDIR /home/git/gogs
+
+# Launch gogs when launching the container
+CMD su - git -c "/home/git/gogs/gogs web"
+
+# expose gogs port
+EXPOSE 3000
+
