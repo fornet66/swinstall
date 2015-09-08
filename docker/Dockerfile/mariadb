@@ -1,0 +1,18 @@
+# Mariadb - mysql service
+#
+# VERSION       5.5.41
+# use the centos base image provided by docker
+FROM centos
+
+MAINTAINER xienan xienan@asiainfo.com
+
+# make sure the package repository is up to date
+RUN echo 'root:fornet66' | chpasswd
+RUN useradd --uid 27 mysql; yum install -y mariadb mariadb-devel mariadb-libs mariadb-server
+COPY ./my.cnf /etc/my.cnf
+# Launch mariadb when launching the container
+CMD su - mysql -c "mysqld_safe --basedir=/usr"
+
+# expose mariadb port
+EXPOSE 3306
+

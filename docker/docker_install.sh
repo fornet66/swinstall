@@ -14,3 +14,5 @@ PID=`docker  inspect  --format "{{ .State.Pid }}"  mysql1`
 nsenter --target $PID --mount --uts --ipc --net --pid
 docker attach `docker ps -q -a`
 
+firewall-cmd --permanent --add-port=5555/tcp
+
