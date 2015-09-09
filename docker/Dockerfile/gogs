@@ -8,7 +8,7 @@ MAINTAINER xienan xienan@asiainfo.com
 
 # make sure the package repository is up to date
 RUN echo 'root:fornet66' | chpasswd
-RUN yum install -y java-1.7.0-openjdk git; useradd --uid 1004 git
+RUN useradd --uid 1004 git; yum install -y java-1.7.0-openjdk git
 COPY ./gogs /home/git/gogs
 RUN chown -R git:git /home/git/gogs
 
