@@ -8,7 +8,7 @@ MAINTAINER xienan xienan@asiainfo.com
 
 # make sure the package repository is up to date
 RUN echo 'root:fornet66' | chpasswd
-RUN useradd sonarqube
+RUN useradd --uid 1001 sonarqube
 RUN yum install -y java-1.7.0-openjdk 
 COPY sonarqube-5.1 /home/sonarqube/sonarqube-5.1
 COPY sonar-runner-2.4 /home/sonarqube/sonar-runner-2.4
