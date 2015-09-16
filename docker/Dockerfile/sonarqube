@@ -15,14 +15,15 @@ COPY sonar-runner-2.4 /home/sonarqube/sonar-runner-2.4
 RUN chown -R sonarqube:sonarqube /home/sonarqube/sonarqube-5.1
 RUN chown -R sonarqube:sonarqube /home/sonarqube/sonar-runner-2.4
 
+USER sonarqube
+WORKDIR /home/sonarqube/sonarqube-5.1
 ENV SONAR_HOME /home/sonarqube/sonarqube-5.1
 ENV SONAR_RUNNER_HOME /home/sonarqube/sonar-runner-2.4
 ENV PATH $SONAR_RUNNER_HOME/bin:$PATH
 ENV SONAR_RUNNER_OPTS "-Xmx512m -XX:MaxPermSize=512m"
 
 # Launch sonarqube when launching the container
-WORKDIR /home/sonarqube/sonarqube-5.1
-CMD su - sonarqube -c "$SONAR_HOME/bin/linux-x86-64/sonar.sh console"
+CMD ["$SONAR_HOME/bin/linux-x86-64/sonar.sh console"]
 
 # expose sonarqube port
 EXPOSE 9000
