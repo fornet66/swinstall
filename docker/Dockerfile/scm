@@ -1,0 +1,24 @@
+# MongoDB
+#
+# VERSION       2.6.10
+# use the centos base image provided by docker
+FROM centos
+
+MAINTAINER xienan xienan@asiainfo.com
+
+# make sure the package repository is up to date
+RUN echo 'root:fornet66' | chpasswd
+RUN useradd --uid 1003 svnroot; yum install -y java-1.7.0-openjdk
+COPY ./scm-server /home/svnroot/scm-server
+RUN chown -R svnroot:svnroot /home/svnroot/scm-server
+
+USER svnroot
+WORKDIR /home/svnroot
+ENV SCM_HOME /home/svnroot/scm-data
+
+# Launch scm when launching the container
+CMD ["/home/svnroot/scm-server/bin/scm-server"]
+
+# expose scm port
+EXPOSE 8080
+
