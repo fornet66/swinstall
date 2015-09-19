@@ -6,17 +6,23 @@ FROM centos
 
 MAINTAINER xienan xienan@asiainfo.com
 
-# make sure the package repository is up to date
-RUN echo 'root:fornet66' | chpasswd
-RUN useradd --uid 1004 git; yum install -y java-1.7.0-openjdk git
-COPY ./gogs /home/git/gogs
-RUN chown -R git:git /home/git/gogs
+ENV USER="git" HOME="/home/git"
 
-USER git
+COPY ./gogs /home/git/gogs
 WORKDIR /home/git/gogs
 
+# make sure the package repository is up to date
+RUN echo 'root:fornet66' | chpasswd \
+  && yum install -y golang git \
+  && useradd --uid 1004 -d $HOME -m $USER \
+  && chown -R $USER:$USER $HOME
+
 # Launch gogs when launching the container
-CMD ["/home/git/gogs/gogs web"]
+USER $USER
+
+ENTRYPOINT [ "./gogs" ]
+
+CMD [ "web" ]
 
 # expose gogs port
 EXPOSE 3000
