@@ -10,8 +10,8 @@ MAINTAINER xienan xienan@asiainfo.com
 RUN echo 'root:fornet66' | chpasswd
 RUN useradd --uid 1001 sonarqube
 RUN yum install -y java-1.7.0-openjdk 
-COPY sonarqube-5.1 /home/sonarqube/sonarqube-5.1
-COPY sonar-runner-2.4 /home/sonarqube/sonar-runner-2.4
+COPY sonarqube-5.1=/home/sonarqube/sonarqube-5.1
+COPY sonar-runner-2.4=/home/sonarqube/sonar-runner-2.4
 RUN chown -R sonarqube:sonarqube /home/sonarqube/sonarqube-5.1
 RUN chown -R sonarqube:sonarqube /home/sonarqube/sonar-runner-2.4
 
