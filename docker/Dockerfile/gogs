@@ -14,7 +14,7 @@ WORKDIR /home/git/gogs
 # make sure the package repository is up to date
 RUN echo 'root:fornet66' | chpasswd \
   && yum install -y golang git \
-  && useradd --uid 1004 -d $HOME -m $USER \
+  && useradd --uid 1004 $USER \
   && chown -R $USER:$USER $HOME
 
 # Launch gogs when launching the container
