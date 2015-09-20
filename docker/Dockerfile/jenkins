@@ -1,0 +1,34 @@
+# jenkins
+#
+# VERSION       
+# use the centos base image provided by docker
+FROM centos
+
+MAINTAINER xienan xienan@asiainfo.com
+
+ENV USER="jenkins" HOME="/home/jenkins"
+ENV CATALINA_BASE="$HOME/apache-tomcat-6.0.37" CATALINA_HOME="$HOME/apache-tomcat-6.0.37"
+ENV MAVEN_HOME="$HOME/apache-maven-3.2.5" PATH="$PATH:$MAVEN_HOME/bin" MAVEN_OPTS="-Xms256m -Xmx512m"
+ENV ANT_HOME="$HOME/apache-ant-1.9.1" PATH="$PATH:$ANT_HOME/bin"
+ENV JENKINS_HOME="$HOME/jenkins-work"
+
+# make sure the package repository is up to date
+RUN echo 'root:fornet66' | chpasswd
+RUN useradd --uid 1010 $USER
+RUN yum install -y java-1.7.0-openjdk
+
+COPY ./apache-tomcat-6.0.37 $HOME/apache-tomcat-6.0.37
+COPY ./apache-ant-1.9.1 $HOME/apache-ant-1.9.1
+COPY ./apache-maven-3.2.5 $HOME/apache-maven-3.2.5
+
+RUN chown -R $USER:$USER $HOME
+
+USER $USER
+WORKDIR $CATALINA_HOME
+
+# Launch jenkins when launching the container
+CMD ["./bin/catalina.sh", "run"]
+
+# expose jenkins port
+EXPOSE 8080
+
