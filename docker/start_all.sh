@@ -14,10 +14,12 @@ docker -H 10.1.234.28:5555 run -d --name=scm -t -p 8080:8080 -v /etc/localtime:/
 docker -H 10.1.234.28:5555 run -d --name=gogs -t -p 3000:3000 -v /etc/localtime:/etc/localtime:ro -v /git:/git --restart=on-failure:3 gogs
 # mariadb
 docker -H 10.1.234.28:5555 run -d --name=mariadb -t -p 3306:3306 -v /etc/localtime:/etc/localtime:ro -v /mariadb:/mariadb --restart=on-failure:3 mariadb
-# soanrqube
-docker -H 10.1.234.29:5555 run -d --name=sonarqube -t -p 9000:9000 -v /etc/localtime:/etc/localtime:ro --restart=on-failure:3 sonarqube
 # jenkins
 docker -H 10.1.234.29:5555 run -d --name=jenkins -t -p 8080:8080 -v /etc/localtime:/etc/localtime:ro -v /home/jenkins/jenkins-work:/home/jenkins/jenkins-work -v /home/jenkins/jenkins-backup:/home/jenkins/jenkins-backup --restart=on-failure:3 jenkins
+# soanrqube
+docker -H 10.1.234.29:5555 run -d --name=sonarqube -t -p 9000:9000 -v /etc/localtime:/etc/localtime:ro --restart=on-failure:3 sonarqube
+# sonatype nexus
+docker -H 10.1.234.29:5555 run -d --name=nexus -t -p 8081:8081 -v /etc/localtime:/etc/localtime:ro -v /home/nexus/sonatype-work:/home/nexus/sonatype-work --restart=on-failure:3 nexus
 # nginx
 docker run -d --name=nginx -p 80:80 --restart=on-failure:3 nginx
 
