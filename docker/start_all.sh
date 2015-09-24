@@ -32,3 +32,17 @@ sudo docker-machine stop default
 sudo docker-machine env default
 sudo docker -H 192.168.99.100:2376 --tls=true --tlsverify=true --tlscacert=/Users/xienan/.docker/machine/machines/default/ca.pem --tlscert=/Users/xienan/.docker/machine/machines/default/cert.pem --tlskey=/Users/xienan/.docker/machine/machines/default/key.pem images
 
+# shipyard
+docker run \
+	-ti \
+	-d \
+	--restart=always \
+	--name shipyard-controller \
+	--link shipyard-rethinkdb:rethinkdb \
+	--link swarm:swarm \
+	-p 8080:8080 \
+	--volumes-from=shipyard-certs \
+	shipyard/shipyard:latest \
+	server \
+	--docker tcp://swarm:2375
+
