@@ -6,8 +6,6 @@ yum install -y device_mapper
 yum install -y supervisor
 yum install -y etcd
 
-docker run hello-world
-
 #modify /usr/lib/systemd/system/docker.service
 systemctl daemon-reload
 systemctl start docker.service
@@ -20,4 +18,5 @@ docker attach `docker ps -q -a`
 firewall-cmd --permanent --add-port=5555/tcp
 
 brctl show
+ethtools -S
 

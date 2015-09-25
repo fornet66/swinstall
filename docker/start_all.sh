@@ -1,4 +1,5 @@
 
+# docker daemon -H unix:///var/run/docker.sock -H tcp://0.0.0.0:5555 --group="docker" --graph="/docker"
 docker run -d -p 2376:2375 --name swarm -v $(pwd)/cluster:/tmp/cluster swarm manage file:///tmp/cluster
 docker -H 127.0.0.1:2376 info
 
