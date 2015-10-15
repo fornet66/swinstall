@@ -75,3 +75,10 @@ echo "as1a1nf0" | passwd --stdin xienan
 
 tar czf - unibss | openssl des3 -salt -k unibss_dev -out /home/cvsroot/cvsbak/rd2_unibss_$DATE.tgz
 
+# change jvm time
+cat << EOF >> /etc/sysconfig/clock
+ZONE="Asia/Shanghai"
+UTC=false
+ARC=false
+EOF
+
