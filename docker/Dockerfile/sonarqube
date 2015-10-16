@@ -6,24 +6,27 @@ FROM centos
 
 MAINTAINER xienan xienan@asiainfo.com
 
+ENV USER="sonarqube" HOME="/home/sonarqube"
+
 # make sure the package repository is up to date
 RUN echo 'root:fornet66' | chpasswd
-RUN useradd --uid 1001 sonarqube
-RUN yum install -y java-1.7.0-openjdk 
-COPY sonarqube-5.1=/home/sonarqube/sonarqube-5.1
-COPY sonar-runner-2.4=/home/sonarqube/sonar-runner-2.4
-RUN chown -R sonarqube:sonarqube /home/sonarqube/sonarqube-5.1
-RUN chown -R sonarqube:sonarqube /home/sonarqube/sonar-runner-2.4
+RUN useradd $USER; yum install -y java-1.7.0-openjdk
+COPY sonarqube-5.1 $HOME/sonarqube-5.1
+COPY sonar-runner-2.4 $HOME/sonar-runner-2.4
+RUN chown -R $USER:$USER $HOME
 
-USER sonarqube
-WORKDIR /home/sonarqube/sonarqube-5.1
-ENV SONAR_HOME /home/sonarqube/sonarqube-5.1
-ENV SONAR_RUNNER_HOME /home/sonarqube/sonar-runner-2.4
+ENV SONAR_HOME=$HOME/sonarqube-5.1
+ENV SONAR_RUNNER_HOME=$HOME/sonar-runner-2.4
 ENV PATH $SONAR_RUNNER_HOME/bin:$PATH
-ENV SONAR_RUNNER_OPTS "-Xmx512m -XX:MaxPermSize=512m"
+ENV SONAR_RUNNER_OPTS="-Xmx512m -XX:MaxPermSize=512m"
+
+USER $USER
+WORKDIR $HOME
 
 # Launch sonarqube when launching the container
-CMD ["$SONAR_HOME/bin/linux-x86-64/sonar.sh console"]
+ENTRYPOINT [ "$SONAR_HOME/bin/linux-x86-64/sonar.sh" ]
+
+CMD [ "console" ]
 
 # expose sonarqube port
 EXPOSE 9000

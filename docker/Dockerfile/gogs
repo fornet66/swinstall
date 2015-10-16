@@ -10,15 +10,15 @@ ENV USER="git" HOME="/home/git"
 
 # make sure the package repository is up to date
 RUN echo 'root:fornet66' | chpasswd
-RUN yum install -y golang git; useradd --uid 1004 $USER
-COPY ./gogs /home/git/gogs
+RUN useradd --uid 1004 $USER; yum install -y golang git
+COPY ./gogs $HOME/gogs
 RUN chown -R $USER:$USER $HOME
 
 # Launch gogs when launching the container
 USER $USER
-WORKDIR /home/git/gogs
+WORKDIR /home/git
 
-ENTRYPOINT [ "./gogs" ]
+ENTRYPOINT [ "./gogs/gogs" ]
 
 CMD [ "web" ]
 

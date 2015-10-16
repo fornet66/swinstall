@@ -6,12 +6,17 @@ FROM centos
 
 MAINTAINER xienan xienan@asiainfo.com
 
+ENV USER="mysql"
+
 # make sure the package repository is up to date
 RUN echo 'root:fornet66' | chpasswd
-RUN useradd --uid 27 mysql; yum install -y mariadb mariadb-devel mariadb-libs mariadb-server
+RUN useradd --uid 27 $USER; yum install -y mariadb mariadb-devel mariadb-libs mariadb-server
 COPY ./my.cnf /etc/my.cnf
+
 # Launch mariadb when launching the container
-CMD ["/usr/bin/mysqld_safe", "--basedir=/usr"]
+ENTRYPOINT [ "/usr/bin/mysqld_safe" ]
+
+CMD [ "--basedir=/usr" ]
 
 # expose mariadb port
 EXPOSE 3306
