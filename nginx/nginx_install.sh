@@ -34,6 +34,11 @@ firewall-cmd --permanent --zone=public --add-rich-rule="rule family="ipv4" \
 	source address="10.1.234.30/24" \
 	port protocol="tcp" port="9000" accept"
 
+# for 10.1.234.29 #mongodb
+firewall-cmd --permanent --zone=public --add-rich-rule="rule family="ipv4" \
+	source address="10.1.234.30/24" \
+	port protocol="tcp" port="28017" accept"
+
 # for 10.1.234.30 # jenkins
 #firewall-cmd --permanent --zone=public --add-rich-rule="rule family="ipv4" \
 #	source address="172.17.0.0/24" \
