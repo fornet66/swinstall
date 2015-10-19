@@ -24,7 +24,19 @@ docker -H 10.1.234.29:5555 run -d --name=sonarqube -t -p 9000:9000 -v /etc/local
 # nginx
 docker run -d --name=nginx -p 80:80 --restart=always nginx
 # swarm
-docker run -d --name swarm -v $(pwd)/cluster:/tmp/cluster swarm manage file:///tmp/cluster
+docker run -d --name shipyard-swarm -v $(pwd)/cluster:/tmp/cluster swarm manage file:///tmp/cluster
+docker run \
+	-ti \
+	-d \
+	--restart=always \
+	--name shipyard-swarm \
+	--link shipyard-proxy:proxy \
+	--volumes-from=shipyard-certs \
+	-v $(pwd)/cluster:/tmp/cluster \
+	swarm:latest \
+	manage --host tcp://0.0.0.0:3375 proxy:2375 \
+	file:///tmp/cluster
+
 # shipyard
 docker run \
 	-ti \

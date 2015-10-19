@@ -39,30 +39,10 @@ firewall-cmd --permanent --zone=public --add-rich-rule="rule family="ipv4" \
 	source address="10.1.234.30/24" \
 	port protocol="tcp" port="28017" accept"
 
-# for 10.1.234.30 # jenkins
-#firewall-cmd --permanent --zone=public --add-rich-rule="rule family="ipv4" \
-#	source address="172.17.0.0/24" \
-#	port protocol="tcp" port="8080" accept"
-
-# for 10.1.234.30 # nexus
-#firewall-cmd --permanent --zone=public --add-rich-rule="rule family="ipv4" \
-#	source address="172.17.0.0/24" \
-#	port protocol="tcp" port="8081" accept"
-
-# for 10.1.234.30 # sonarqube
-#firewall-cmd --permanent --zone=public --remove-rich-rule="rule family="ipv4" \
-#	source address="172.17.0.0/24" \
-#	port protocol="tcp" port="8082" accept"
-
 # for 10.1.234.30 # ssm
 firewall-cmd --permanent --zone=public --add-rich-rule="rule family="ipv4" \
 	source address="172.17.0.0/24" \
 	port protocol="tcp" port="8083" accept"
-
-# for 10.1.234.30 # docsys
-#firewall-cmd --permanent --zone=public --add-rich-rule="rule family="ipv4" \
-#	source address="172.17.0.0/24" \
-#	port protocol="tcp" port="8085" accept"
 
 # for 10.1.234.30 # sonarcheck
 firewall-cmd --permanent --zone=public --add-rich-rule="rule family="ipv4" \
