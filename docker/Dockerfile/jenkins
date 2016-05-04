@@ -13,7 +13,7 @@ ENV ANT_HOME="$HOME/apache-ant-1.9.1" PATH="$PATH:$ANT_HOME/bin"
 ENV JENKINS_HOME="$HOME/jenkins-work"
 
 # make sure the package repository is up to date
-RUN echo 'root:fornet66' | chpasswd
+RUN echo 'root:as1a1nf0' | chpasswd
 RUN useradd --uid 1010 $USER; yum install -y java-1.7.0-openjdk
 
 COPY ./apache-tomcat-6.0.37 $HOME/apache-tomcat-6.0.37

@@ -25,7 +25,7 @@ docker -H 10.1.234.29:2375 run -d --name=jenkins -ti -p 8080:8080 -v /etc/localt
 # soanrqube
 docker -H 10.1.234.29:2375 run -d --name=sonarqube -ti -p 9000:9000 -v /etc/localtime:/etc/localtime:ro --restart=on-failure:3 sonarqube
 # nginx
-docker -H 10.1.234.30:2375 run -d --name=nginx -ti -p 80:80 -v /etc/localtime:/etc/localtime:ro --restart=always nginx
+docker -H 10.1.234.30:2375 run -d --name=nginx -ti -p 80:80 -p 443:443 -v /etc/localtime:/etc/localtime:ro --restart=always nginx
 # rethinkdb
 docker run \
 	-ti \

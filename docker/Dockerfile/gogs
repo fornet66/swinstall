@@ -9,7 +9,7 @@ MAINTAINER xienan xienan@asiainfo.com
 ENV USER="git" HOME="/home/git"
 
 # make sure the package repository is up to date
-RUN echo 'root:fornet66' | chpasswd
+RUN echo 'root:as1a1nf0' | chpasswd
 RUN useradd --uid 1004 $USER; yum install -y golang git
 COPY ./gogs $HOME/gogs
 RUN chown -R $USER:$USER $HOME
