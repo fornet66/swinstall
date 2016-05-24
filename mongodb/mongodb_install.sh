@@ -1,9 +1,7 @@
 
 yum install -y mongodb
 
-mongod --dbpath=/mongodb/master --port 27017 --fork \
-	--directoryperdb --httpinterface \
-	--logpath=/mongodb/logs/master.log --logappend --master --auth
+mongod --config mongodb.confg
 mongod --dbpath=/mongodb/master --shutdown
 
 mongo 127.0.0.1
@@ -11,7 +9,7 @@ use admin;
 db.createUser(
 {
 	user: "root",
-	pwd: "mongodb_admin",
+	pwd: "as1a1nf0",
 	roles: [ "dbOwner" , "clusterAdmin" ]
 }
 );
