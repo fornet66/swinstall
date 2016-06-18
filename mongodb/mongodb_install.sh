@@ -1,7 +1,10 @@
 
 yum install -y mongodb
 
-mongod --config mongodb.confg
+echo never > /sys/kernel/mm/transparent_hugepage/enabled
+echo never > /sys/kernel/mm/transparent_hugepage/defrag
+
+mongod --config mongodb.conf
 mongod --dbpath=/mongodb/master --shutdown
 
 mongo 127.0.0.1

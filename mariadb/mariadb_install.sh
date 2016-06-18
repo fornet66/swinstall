@@ -7,7 +7,8 @@
 yum install mariadb
 yum install mariadb-server
 yum install mariadb-devel
-mysql_install_db
+mysql_install_db --basedir=/home/mysql --datadir=/data/mysql
+./bin/mysqld_safe --defaults-file=my.cnf &
 ## start mariadb
 cp /usr/local/mysql/my-huge.cnf /etc/my.cnf
 echo "max_connections=500" >> my.cnf
