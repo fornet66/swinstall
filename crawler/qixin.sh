@@ -3,6 +3,9 @@ COOKIE='Cookie: aliyungf_tc=AQAAAJvYF0ugnA4Asizsc6NBpTAgnFWl; hide-download-pane
 HXNORMALIZE='/home/xienan/html-xml-utils-7.1/hxnormalize'
 HXSELECT='/home/xienan/html-xml-utils-7.1/hxselect'
 HXWLS='/home/xienan/html-xml-utils-7.1/hxwls'
+ECHO="echo -e"
+OUTPUT_GREEN="\033[32m"
+OUTPUT_RESET="\033[0m"
 
 gettime() {
 	dd=`date +%s%N`
@@ -38,14 +41,15 @@ MYSQL="mysql -s -h $host -P $port -u $user -p$pass -D $db"
 mysqldelete() {
 	key=$1
 	table=$2
-$MYSQL << EOF
+$MYSQL << EOF > /dev/null 2>&1
     delete from $table where zjh="$key";
 EOF
 }
 mysqlinsert() {
 	table=$1
 	value=$2
-$MYSQL << EOF
+	echo $table $value >> ./kk
+$MYSQL << EOF >> ./kk 2>&1
     insert into $table values ($value);
 EOF
 }
@@ -63,8 +67,7 @@ company=${link:9}
 encode=`urlencode $name`
 timer=`gettime`
 referer='Referer: http://www.qixin.com/company/'$company
-echo $name
-echo $company
+$ECHO $OUTPUT_GREEN '企业名称:' $name '企业注册号:' $company $OUTPUT_RESET
 
 #基本信息
 url='http://www.qixin.com/company/'$company
@@ -76,6 +79,7 @@ value=`echo "\"$zjh\",\"$name\","$(echo $info|awk -F "|" '{printf("\"%s\",\"%s\"
 table='yj_qy'
 mysqldelete "$zjh" "$table"
 mysqlinsert "$table" "$value"
+$ECHO $OUTPUT_GREEN '分析企业基本信息完成' $OUTPUT_RESET
 
 #股东信息
 holder=`echo $res|$HXNORMALIZE -x|$HXSELECT 'div#info div div.panel:nth-child(2) div.panel-body table tbody'`
@@ -101,6 +105,7 @@ if [ -n "$holder" ];then
 		mysqlinsert "$table" "$value"
 	done
 fi
+$ECHO $OUTPUT_GREEN '分析企业股东信息完成' $OUTPUT_RESET
 
 #主要人员
 person=`echo $res|$HXNORMALIZE -x|$HXSELECT 'ul.major-person-list'|w3m -dump_source -cols 2000 -T 'text/html'`
@@ -126,6 +131,7 @@ if [ -n "$person" ];then
 		mysqlinsert "$table" "$value"
 	done
 fi
+$ECHO $OUTPUT_GREEN '分析企业主要人员完成' $OUTPUT_RESET
 
 #分支机构
 branch=`echo $res|$HXNORMALIZE -x|$HXSELECT 'div#info div div.panel:nth-child(4) div.panel-body table tbody'|$HXNORMALIZE -x|$HXSELECT 'tbody:first-child'`
@@ -151,110 +157,236 @@ if [ -n "$branch" ];then
 		mysqlinsert "$table" "$value"
 	done
 fi
-exit 0
+$ECHO $OUTPUT_GREEN '分析企业分支机构完成' $OUTPUT_RESET
 
 url='http://www.qixin.com/service/getRiskInfo?eid='$company'&_='$timer
 res=`curl -s $url -H "$COOKIE" -H 'DNT: 1' -H 'Accept-Encoding: gzip, deflate, sdch' -H 'Accept-Language: zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36' -H 'Content-Type: application/json; charset=utf-8' -H 'Accept: application/json, text/javascript, */*; q=0.01' -H "$referer" -H 'X-Requested-With: XMLHttpRequest' -H 'Connection: keep-alive' --compressed`
-#变更记录
+#工商变更
+table='yj_qygsbg'
+mysqldelete $zjh $table
 size=`echo $res|jq '.data.changerecords.items|length'`
 i=0
 while [ $i -lt $size ]
 do
-	echo $res|jq --arg i $i '.data.changerecords.items[$i|tonumber]'
+	record=`echo $res|jq --arg i $i '.data.changerecords.items[$i|tonumber]'`
+	bgrq=`echo $record|jq '.change_date'`
+	bgsx=`echo $record|jq '.change_item'|sed s/[[:space:]]//g`
+	bgq=`echo $record|jq '.before_content'|sed s/[[:space:]]//g`
+	bgh=`echo $record|jq '.after_content'|sed s/[[:space:]]//g`
+	value=`echo "\"$zjh\",$bgrq,$bgsx,$bgq,$bgh"`
+	mysqlinsert $table $value
     i=`expr $i + 1`
 done
+$ECHO $OUTPUT_GREEN '分析企业工商变更完成' $OUTPUT_RESET
+
 #法院判决
+table='yj_fypj'
+mysqldelete $zjh $table
 size=`echo $res|jq '.data.lawsuits.items|length'`
 i=0
 while [ $i -lt $size ]
 do
-	echo $res|jq --arg i $i '.data.lawsuits.items[$i|tonumber]'
+	record=`echo $res|jq --arg i $i '.data.lawsuits.items[$i|tonumber]'`
+	pjsj=`echo $record|jq '.date'`
+	sf=`echo $record|jq '.role'`
+	pjjg=`echo $record|jq '.result'|sed s/[[:space:]]//g`
+	pjs=`echo $record|jq '.title'|sed s/[[:space:]]//g`
+	value=`echo "\"$zjh\",$pjsj,$sf,$pjjg,$pjs"`
+	mysqlinsert $table $value
     i=`expr $i + 1`
 done
+$ECHO $OUTPUT_GREEN '分析企业法院判决完成' $OUTPUT_RESET
+
 #被执行人信息
+table='yj_zxxx'
+mysqldelete $zjh $table
 size=`echo $res|jq '.data.executionPerson.items|length'`
 i=0
 while [ $i -lt $size ]
 do
-	echo $res|jq --arg i $i '.data.executionPerson.items[$i|tonumber]'
+	record=`echo $res|jq --arg i $i '.data.executionPerson.items[$i|tonumber]'`
+	lasj=`echo $record|jq '.case_date'`
+	ah=`echo $record|jq '.case_number'`
+	zxbd=`echo $record|jq '.amount'`
+	zxfy=`echo $record|jq '.court'`
+	zxzt=`echo $record|jq '.status'`
+	value=`echo "\"$zjh\",$lasj,$ah,$zxbd,$zxfy,$zxzt"`
+	mysqlinsert $table $value
     i=`expr $i + 1`
 done
+$ECHO $OUTPUT_GREEN '分析企业被执行人信息完成' $OUTPUT_RESET
+
 #经营异常
 size=`echo $res|jq '.data.abnormal.items|length'`
 i=0
 while [ $i -lt $size ]
 do
-	echo $res|jq --arg i $i '.data.abnormal.items[$i|tonumber]'
+	record=`echo $res|jq --arg i $i '.data.abnormal.items[$i|tonumber]'`
+	echo $record
     i=`expr $i + 1`
 done
+$ECHO $OUTPUT_GREEN '分析企业经营异常完成' $OUTPUT_RESET
 
 url='http://www.qixin.com/service/getAbilityInfo?eid='$company'&_='$timer
 res=`curl -s $url -H "$COOKIE" -H 'DNT: 1' -H 'Accept-Encoding: gzip, deflate, sdch' -H 'Accept-Language: zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36' -H 'Content-Type: application/json; charset=utf-8' -H 'Accept: application/json, text/javascript, */*; q=0.01' -H "$referer" -H 'X-Requested-With: XMLHttpRequest' -H 'Connection: keep-alive' --compressed`
 #商标
+table='yj_qysb'
+mysqldelete $zjh $table
 size=`echo $res|jq '.data.trademark.items|length'`
 i=0
 while [ $i -lt $size ]
 do
-	echo $res|jq --arg i $i '.data.trademark.items[$i|tonumber]'
+	record=`echo $res|jq --arg i $i '.data.trademark.items[$i|tonumber]'`
+	sbm=`echo $record|jq '.name'|sed s/[[:space:]]//g`
+	zt=`echo $record|jq '.status'`
+	sqsj=`echo $record|jq '.apply_date'`
+	zch=`echo $record|jq '.reg_num'`
+	lb=`echo $record|jq '.type_name'`
+	image_url=`echo $record|jq '.image_url'`
+	value=`echo "\"$zjh\",$sbm,$zt,$sqsj,$zch,$lb,$image_url"`
+	mysqlinsert $table $value
 	i=`expr $i + 1`
 done
+$ECHO $OUTPUT_GREEN '分析企业商标完成' $OUTPUT_RESET
+
 #专利信息
+table='yj_zlxx'
+mysqldelete $zjh $table
 size=`echo $res|jq '.data.patent.items|length'`
 i=0
 while [ $i -lt $size ]
 do
-	echo $res|jq --arg i $i '.data.patent.items[$i|tonumber]'
+	record=`echo $res|jq --arg i $i '.data.patent.items[$i|tonumber]'`
+	zlm=`echo $record|jq '.patent_name'|sed s/[[:space:]]//g`
+	zllx=`echo $record|jq '.category_num'`
+	lxmc=`echo $record|jq '.type_name'`
+	sqh=`echo $record|jq '.request_num'`
+	fbrq=`echo $record|jq '.outhor_date'`
+	zy=`echo $record|jq '.brief'|sed s/[[:space:]]//g`
+	value=`echo "\"$zjh\",$zlm,$zllx,$lxmc,$sqh,$fbrq,$zy"`
+	mysqlinsert $table $value
 	i=`expr $i + 1`
 done
+$ECHO $OUTPUT_GREEN '分析企业专利信息完成' $OUTPUT_RESET
+
 #著作权
+table='yj_qyzzq'
+mysqldelete $zjh $table
 size=`echo $res|jq '.data.copyright.items|length'`
 i=0
 while [ $i -lt $size ]
 do
-	echo $res|jq --arg i $i '.data.copyright.items[$i|tonumber]'
+	record=`echo $res|jq --arg i $i '.data.copyright.items[$i|tonumber]'`
+	zpmc=`echo $record|jq '.name'|sed s/[[:space:]]//g`
+	djh=`echo $record|jq '.number'`
+	lb=`echo $record|jq '.type_name'`
+	czwcrq=`echo $record|jq '.first_date'`
+	djrq=`echo $record|jq '.approval_date'`
+	scfbrq=`echo $record|jq '.success_date'`
+	value=`echo "\"$zjh\",$zpmc,$djh,$lb,$czwcrq,$djrq,$scfbrq"`
+	mysqlinsert $table $value
 	i=`expr $i + 1`
 done
+$ECHO $OUTPUT_GREEN '分析企业著作权完成' $OUTPUT_RESET
+
 #软件著作权
+table='yj_qyrjzzq'
+mysqldelete $zjh $table
 size=`echo $res|jq '.data.softwarecopyright.items|length'`
 i=0
 while [ $i -lt $size ]
 do
-	echo $res|jq --arg i $i '.data.softwarecopyright.items[$i|tonumber]'
+	record=`echo $res|jq --arg i $i '.data.softwarecopyright.items[$i|tonumber]'`
+	rjmc=`echo $record|jq '.name'|sed s/[[:space:]]//g`
+	djh=`echo $record|jq '.number'`
+	bbh=`echo $record|jq '.version'`
+	flh=`echo $record|jq '.type_num'`
+	djpzrq=`echo $record|jq '.approval_date'`
+	rjjc=`echo $record|jq '.short_name'|sed s/[[:space:]]//g`
+	value=`echo "\"$zjh\",$rjmc,$djh,$bbh,$flh,$djpzrq,$rjjc"`
+	mysqlinsert $table $value
 	i=`expr $i + 1`
 done
+$ECHO $OUTPUT_GREEN '分析企业软件著作权完成' $OUTPUT_RESET
+
 #域名
+table='yj_qyym'
+mysqldelete $zjh $table
 size=`echo $res|jq '.data.domain.items|length'`
 i=0
 while [ $i -lt $size ]
 do
-	echo $res|jq --arg i $i '.data.domain.items[$i|tonumber]'
+	record=`echo $res|jq --arg i $i '.data.domain.items[$i|tonumber]'`
+	wz=`echo $record|jq '.domain'`
+	wzmc=`echo $record|jq '.site_name'`
+	wzba=`echo $record|jq '.number'`
+	djpzrq=`echo $record|jq '.check_date'`
+	value=`echo "\"$zjh\",$wz,$wzmc,$wzba,$djpzrq"`
+	mysqlinsert $table $value
 	i=`expr $i + 1`
 done
+$ECHO $OUTPUT_GREEN '分析企业域名完成' $OUTPUT_RESET
+
 #资质认证
+table='yj_qyzzrz'
+mysqldelete $zjh $table
 size=`echo $res|jq '.data.certification.items|length'`
 i=0
 while [ $i -lt $size ]
 do
-	echo $res|jq --arg i $i '.data.certification.items[$i|tonumber]'
+	record=`echo $res|jq --arg i $i '.data.certification.items[$i|tonumber]'`
+	zslx=`echo $record|jq '.type'`
+	zsbh=`echo $record|jq '.num'`
+	fzrq=`echo $record|jq '.issue_date'`
+	yxqx=`echo $record|jq '.validity_end'`
+	zszt=`echo $record|jq '.status'`
+	bz=`echo $record|jq '.remarks'|sed s/[[:space:]]//g`
+	value=`echo "\"$zjh\",$zslx,$zsbh,$fzrq,$yxqx,$zszt,$bz"`
+	mysqlinsert $table $value
 	i=`expr $i + 1`
 done
+$ECHO $OUTPUT_GREEN '分析企业资质认证完成' $OUTPUT_RESET
 
 url='http://www.qixin.com/service/getOperationInfo?eid='$company'&ename='$encode'&_='$timer
 res=`curl -s $url -H "$COOKIE" -H 'DNT: 1' -H 'Accept-Encoding: gzip, deflate, sdch' -H 'Accept-Language: zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36' -H 'Content-Type: application/json; charset=utf-8' -H 'Accept: application/json, text/javascript, */*; q=0.01' -H "$referer" -H 'X-Requested-With: XMLHttpRequest' -H 'Connection: keep-alive' --compressed`
 #招聘信息
+table='yj_qyzpxx'
+mysqldelete $zjh $table
 size=`echo $res|jq '.data.job.items|length'`
 i=0
 while [ $i -lt $size ]
 do
-	echo $res|jq --arg i $i '.data.job.items[$i|tonumber]'
+	record=`echo $res|jq --arg i $i '.data.job.items[$i|tonumber]'`
+	zw=`echo $record|jq '.title'`
+	xz=`echo $record|jq '.salary'`
+	jy=`echo $record|jq '.years'`
+	dd=`echo $record|jq '.location'|sed s/[[:space:]]//g`
+	xl=`echo $record|jq '.education'`
+	fbrq=`echo $record|jq '.date'`
+	zwms=`echo $record|jq '.description'|sed s/[[:space:]]//g`
+	value=`echo "\"$zjh\",$zw,$xz,$jy,$dd,$xl,$fbrq,$zwms"`
+	mysqlinsert $table $value
 	i=`expr $i + 1`
 done
+$ECHO $OUTPUT_GREEN '分析企业招聘信息完成' $OUTPUT_RESET
+
+table='yj_qyztb'
+mysqldelete $zjh $table
 #招投标
 size=`echo $res|jq '.data.bidding.items|length'`
 i=0
 while [ $i -lt $size ]
 do
-	echo $res|jq --arg i $i '.data.bidding.items[$i|tonumber]'
+	record=`echo $res|jq --arg i $i '.data.bidding.items[$i|tonumber]'`
+	mc=`echo $record|jq '.title'|sed s/[[:space:]]//g`
+	ms=`echo $record|jq '.brief'|sed s/[[:space:]]//g`
+	hy=`echo $record|jq '.industry'`
+	fbsj=`echo $record|jq '.issue_time'`
+	ssdq=`echo $record|jq '.area'`
+	xmfl=`echo $record|jq '.type'`
+	value=`echo "\"$zjh\",$mc,$ms,$hy,$fbsj,$ssdq,$xmfl"`
+	mysqlinsert $table $value
 	i=`expr $i + 1`
 done
+$ECHO $OUTPUT_GREEN '分析企业招投标完成' $OUTPUT_RESET
 
