@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-COOKIE='Cookie: aliyungf_tc=AQAAAJvYF0ugnA4Asizsc6NBpTAgnFWl; hide-download-panel=1; sid=s%3AtQzkv2-n-FTzRPEiSVqXrgT9XdDrgzyn.7DqmYAUXyiqoNcUDJfyUZeoLSYgwmyJ1hO1zqefnV0A; responseTimeline=101; _zg=%7B%22uuid%22%3A%20%22157dc22f64d210-0bfeb4b446c45b-37687a03-fa000-157dc22f64ed7%22%2C%22sid%22%3A%201477406851.469%2C%22updated%22%3A%201477410041.992%2C%22info%22%3A%201476867061335%2C%22cuid%22%3A%20%228c6930d9-a152-4f99-93af-1281e7e1dc8b%22%7D'
+COOKIE='Cookie: aliyungf_tc=AQAAAJaHtBPyxQ4AsizscyA5BjlTGPr+; hide-download-panel=1; sid=s%3AWpz7d8RfrtIslrBZOQroMNrMb4fklVmA.7%2BDSlm5rpDPwg0Zk9lfnA72BZhSj%2BKeGFxXTDW1Xhyg; _zg=%7B%22uuid%22%3A%20%22157dc22f64d210-0bfeb4b446c45b-37687a03-fa000-157dc22f64ed7%22%2C%22sid%22%3A%201477533575.121%2C%22updated%22%3A%201477534547.025%2C%22info%22%3A%201477472201243%2C%22cuid%22%3A%20%22a8cb91bd-e871-4a5c-8aab-d3b55b0735ec%22%7D; responseTimeline=125'
 HXNORMALIZE='/home/xienan/html-xml-utils-7.1/hxnormalize'
 HXSELECT='/home/xienan/html-xml-utils-7.1/hxselect'
 HXWLS='/home/xienan/html-xml-utils-7.1/hxwls'
@@ -67,7 +67,7 @@ company=${link:9}
 encode=`urlencode $name`
 timer=`gettime`
 referer='Referer: http://www.qixin.com/company/'$company
-$ECHO $OUTPUT_GREEN '企业名称:' $name '企业注册号:' $company $OUTPUT_RESET
+$ECHO $OUTPUT_GREEN '企业名称:' $name '企业唯一号:' $company $OUTPUT_RESET
 
 #基本信息
 url='http://www.qixin.com/company/'$company
@@ -217,12 +217,20 @@ done
 $ECHO $OUTPUT_GREEN '分析企业被执行人信息完成' $OUTPUT_RESET
 
 #经营异常
+table='yj_qyjyyc'
+mysqldelete $zjh $table
 size=`echo $res|jq '.data.abnormal.items|length'`
 i=0
 while [ $i -lt $size ]
 do
 	record=`echo $res|jq --arg i $i '.data.abnormal.items[$i|tonumber]'`
-	echo $record
+	zcjdjg=`echo $record|jq '.department'`
+	lrrq=`echo $record|jq '.in_date'`
+	lrjyycmlyy=`echo $record|jq '.in_reason'|sed s/[[:space:]]//g`
+	ycrq=`echo $record|jq '.out_date'`
+	ycjyycmlyy=`echo $record|jq '.out_reason'|sed s/[[:space:]]//g`
+	value=`echo "\"$zjh\",$zcjdjg,$lrrq,$lrjyycmlyy,$ycrq,$ycjyycmlyy"`
+	mysqlinsert $table $value
     i=`expr $i + 1`
 done
 $ECHO $OUTPUT_GREEN '分析企业经营异常完成' $OUTPUT_RESET
