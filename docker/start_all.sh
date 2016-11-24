@@ -12,6 +12,16 @@ docker -H 10.1.234.29:2375 restart nodejs
 docker -H 10.1.234.29:2375 restart robotframework
 docker -H 10.1.234.30:2375 restart nginx
 
+# redis
+docker run -d --name=redis -h redis -ti -p 6379:6379 -v /etc/localtime:/etc/localtime:ro \
+    -v /data/redis:/redis --restart=on-failure:3 redis /redis/6379.conf
+# mongodb
+docker run -d --name=mongodb -h mongodb -ti -p 27017:27017 \
+    -v /etc/localtime:/etc/localtime:ro -v /data/mongodb:/data/db \
+    --restart=on-failure:3 tutum/mongodb
+# owncloud
+docker run -d --name=owncloud -h owncloud -ti -v /etc/localtime:/etc/localtime:ro \
+    -v /data/owncloud:/var/www/html --restart=on-failure:3 owncloud
 # scm
 docker -H 10.1.234.28:2375 run -d --name=scm -ti -p 8080:8080 -v /etc/localtime:/etc/localtime:ro -v /home/svnroot/scm-data:/home/svnroot/scm-data -v /svnroot:/svnroot --restart=on-failure:3 scm
 # gogs
