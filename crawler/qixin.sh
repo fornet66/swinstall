@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-COOKIE='Cookie: Hm_lvt_52d64b8d3f6d42a2e416d59635df3f71=1478010711; aliyungf_tc=AQAAAK5E6BhWpgwAsizsczPl503RANJV; sid=s%3A-tybRtRcPdkApgJBo_PdQ746ny8IXvOl.Wp8JUOtl2fyZsD%2FTjv9pzOD5tbVvPc%2FPA8i6KAlkctI; responseTimeline=45; _zg=%7B%22uuid%22%3A%20%22157dc22f64d210-0bfeb4b446c45b-37687a03-fa000-157dc22f64ed7%22%2C%22sid%22%3A%201478481443.141%2C%22updated%22%3A%201478481474.97%2C%22info%22%3A%201478317346628%2C%22cuid%22%3A%20%228fcc2de7-be87-4de2-9200-6f8f358e203a%22%7D'
+COOKIE='Cookie: Hm_lvt_52d64b8d3f6d42a2e416d59635df3f71=1478010711; tencentSig=114552832; aliyungf_tc=AQAAAJpKmwIPPAwAzQhs2jJx3CDjgEuo; _qddamta_800809556=3-0; sid=s%3AJI8Njd12mgXI_ErKEFYIFv5UrdDujyXe.So8wcLD3dChtJmyCkuPeNoN4C4jhBFydIPb6vLHUv%2F8; hide-download-panel=1; _qddac=3-2-1.1.27ykve.ivw7ipyc; _zg=%7B%22uuid%22%3A%20%22157dc22f64d210-0bfeb4b446c45b-37687a03-fa000-157dc22f64ed7%22%2C%22sid%22%3A%201479982753.876%2C%22updated%22%3A%201479983476.232%2C%22info%22%3A%201479982753890%2C%22cuid%22%3A%20%228fcc2de7-be87-4de2-9200-6f8f358e203a%22%7D; responseTimeline=148; _qddaz=QD.314g1q.303xpc.ivkkb23d; _qdda=3-1.1; _qddab=3-27ykve.ivw7ipyc'
 HXNORMALIZE='/home/xienan/html-xml-utils-7.1/hxnormalize'
 HXSELECT='/home/xienan/html-xml-utils-7.1/hxselect'
 HXWLS='/home/xienan/html-xml-utils-7.1/hxwls'
@@ -36,7 +36,7 @@ host='localhost'
 port='3306'
 user='yjcloud'
 pass='yjyjs123'
-db='portrait'
+db='newportrait'
 MYSQL="mysql -s -h $host -P $port -u $user -p$pass -D $db"
 mysqlselect() {
 	table=$1
@@ -96,7 +96,6 @@ info=`echo $tmp|awk 'BEGIN{OFS="|"}{gsub(/^[ \t]+/, "", $2); gsub(/[ \t]+$/, "",
 zjh=`echo $info|awk -F "|" '{print $3}'`
 value=`echo "\"$company\",\"$zjh\",\"$name\","$(echo $info|awk -F "|" '{printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"", $1,$2,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)}')`
 table='yj_qy'
-echo $value
 mysqldeleteqy "$company" "$table"
 mysqlinsert "$table" "$value"
 $ECHO $OUTPUT_GREEN '分析企业基本信息完成' $OUTPUT_RESET
@@ -201,7 +200,7 @@ done
 $ECHO $OUTPUT_GREEN '分析企业工商变更完成' $OUTPUT_RESET
 
 #法院判决
-nil=''
+nil='null'
 table='yj_lass'
 mysqldelete $zjh $table
 size=`echo $res|jq '.data.lawsuits.items|length'`
@@ -220,7 +219,7 @@ done
 $ECHO $OUTPUT_GREEN '分析企业法院判决完成' $OUTPUT_RESET
 
 #被执行人信息
-nil=''
+nil='null'
 table='yj_zxxx'
 mysqldelete $zjh $table
 size=`echo $res|jq '.data.executionPerson.items|length'`
