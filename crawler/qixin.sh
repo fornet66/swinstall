@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-COOKIE='Cookie: aliyungf_tc=AQAAAJaHtBPyxQ4AsizscyA5BjlTGPr+; hide-download-panel=1; sid=s%3AWpz7d8RfrtIslrBZOQroMNrMb4fklVmA.7%2BDSlm5rpDPwg0Zk9lfnA72BZhSj%2BKeGFxXTDW1Xhyg; _zg=%7B%22uuid%22%3A%20%22157dc22f64d210-0bfeb4b446c45b-37687a03-fa000-157dc22f64ed7%22%2C%22sid%22%3A%201477533575.121%2C%22updated%22%3A%201477534547.025%2C%22info%22%3A%201477472201243%2C%22cuid%22%3A%20%22a8cb91bd-e871-4a5c-8aab-d3b55b0735ec%22%7D; responseTimeline=125'
+COOKIE='Cookie: Hm_lvt_52d64b8d3f6d42a2e416d59635df3f71=1478010711; aliyungf_tc=AQAAAK5E6BhWpgwAsizsczPl503RANJV; sid=s%3A-tybRtRcPdkApgJBo_PdQ746ny8IXvOl.Wp8JUOtl2fyZsD%2FTjv9pzOD5tbVvPc%2FPA8i6KAlkctI; responseTimeline=45; _zg=%7B%22uuid%22%3A%20%22157dc22f64d210-0bfeb4b446c45b-37687a03-fa000-157dc22f64ed7%22%2C%22sid%22%3A%201478481443.141%2C%22updated%22%3A%201478481474.97%2C%22info%22%3A%201478317346628%2C%22cuid%22%3A%20%228fcc2de7-be87-4de2-9200-6f8f358e203a%22%7D'
 HXNORMALIZE='/home/xienan/html-xml-utils-7.1/hxnormalize'
 HXSELECT='/home/xienan/html-xml-utils-7.1/hxselect'
 HXWLS='/home/xienan/html-xml-utils-7.1/hxwls'
@@ -38,24 +38,42 @@ user='yjcloud'
 pass='yjyjs123'
 db='portrait'
 MYSQL="mysql -s -h $host -P $port -u $user -p$pass -D $db"
+mysqlselect() {
+	table=$1
+	key=$2
+$MYSQL << EOF 2>/dev/null
+	select count(*) from $table where qymc like "%$key%";
+EOF
+}
+mysqldeleteqy() {
+	key=$1
+	table=$2
+$MYSQL << EOF 2>/dev/null
+	delete from $table where uuid="$key";
+EOF
+}
 mysqldelete() {
 	key=$1
 	table=$2
-$MYSQL << EOF > /dev/null 2>&1
+$MYSQL << EOF 2>/dev/null
     delete from $table where zjh="$key";
 EOF
 }
 mysqlinsert() {
 	table=$1
 	value=$2
-	echo $table $value >> ./kk
-$MYSQL << EOF >> ./kk 2>&1
+$MYSQL << EOF 2>/dev/null
     insert into $table values ($value);
 EOF
 }
 
 name=$1
 encode=`urlencode $name`
+count=`mysqlselect "yj_qy" "$name"`
+if [ $count -gt 0 ]; then
+	echo "企业($name)已经处理完毕";
+	exit 0;
+fi
 
 #找到列表第一个
 url='http://www.qixin.com/search?key='$encode'&type=enterprise'
@@ -69,15 +87,17 @@ timer=`gettime`
 referer='Referer: http://www.qixin.com/company/'$company
 $ECHO $OUTPUT_GREEN '企业名称:' $name '企业唯一号:' $company $OUTPUT_RESET
 
+sleep 5
 #基本信息
 url='http://www.qixin.com/company/'$company
 res=`curl -s $url -H "$COOKIE" -H 'DNT: 1' -H 'Accept-Encoding: gzip, deflate, sdch' -H 'Accept-Language: zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36' -H 'Content-Type: application/json; charset=utf-8' -H 'Accept: application/json, text/javascript, */*; q=0.01' -H "$referer" -H 'X-Requested-With: XMLHttpRequest' -H 'Connection: keep-alive' --compressed`
 tmp=`echo $res|$HXNORMALIZE -x|$HXSELECT 'div.basic-info'|w3m -dump -cols 2000 -T 'text/html'`
 info=`echo $tmp|awk 'BEGIN{OFS="|"}{gsub(/^[ \t]+/, "", $2); gsub(/[ \t]+$/, "", $2); gsub(/^[ \t]+/, "", $4); gsub(/[ \t]+$/, "", $4); print $2,$4,$6,$8,$10,$12,$14,$17,$21 $22,$24,$26,$28,$30}'`
 zjh=`echo $info|awk -F "|" '{print $3}'`
-value=`echo "\"$zjh\",\"$name\","$(echo $info|awk -F "|" '{printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"", $1,$2,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)}')`
+value=`echo "\"$company\",\"$zjh\",\"$name\","$(echo $info|awk -F "|" '{printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"", $1,$2,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)}')`
 table='yj_qy'
-mysqldelete "$zjh" "$table"
+echo $value
+mysqldeleteqy "$company" "$table"
 mysqlinsert "$table" "$value"
 $ECHO $OUTPUT_GREEN '分析企业基本信息完成' $OUTPUT_RESET
 
@@ -159,6 +179,7 @@ if [ -n "$branch" ];then
 fi
 $ECHO $OUTPUT_GREEN '分析企业分支机构完成' $OUTPUT_RESET
 
+sleep 5
 url='http://www.qixin.com/service/getRiskInfo?eid='$company'&_='$timer
 res=`curl -s $url -H "$COOKIE" -H 'DNT: 1' -H 'Accept-Encoding: gzip, deflate, sdch' -H 'Accept-Language: zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36' -H 'Content-Type: application/json; charset=utf-8' -H 'Accept: application/json, text/javascript, */*; q=0.01' -H "$referer" -H 'X-Requested-With: XMLHttpRequest' -H 'Connection: keep-alive' --compressed`
 #工商变更
@@ -180,7 +201,8 @@ done
 $ECHO $OUTPUT_GREEN '分析企业工商变更完成' $OUTPUT_RESET
 
 #法院判决
-table='yj_fypj'
+nil=''
+table='yj_lass'
 mysqldelete $zjh $table
 size=`echo $res|jq '.data.lawsuits.items|length'`
 i=0
@@ -191,13 +213,14 @@ do
 	sf=`echo $record|jq '.role'`
 	pjjg=`echo $record|jq '.result'|sed s/[[:space:]]//g`
 	pjs=`echo $record|jq '.title'|sed s/[[:space:]]//g`
-	value=`echo "\"$zjh\",$pjsj,$sf,$pjjg,$pjs"`
+	value=`echo "\"$zjh\",$nil,$nil,$nil,$nil,$nil,$sf,$nil,$nil,$nil,$pjsj,$nil,$nil,$nil,$pjjg,$nil,$nil"`
 	mysqlinsert $table $value
     i=`expr $i + 1`
 done
 $ECHO $OUTPUT_GREEN '分析企业法院判决完成' $OUTPUT_RESET
 
 #被执行人信息
+nil=''
 table='yj_zxxx'
 mysqldelete $zjh $table
 size=`echo $res|jq '.data.executionPerson.items|length'`
@@ -210,7 +233,7 @@ do
 	zxbd=`echo $record|jq '.amount'`
 	zxfy=`echo $record|jq '.court'`
 	zxzt=`echo $record|jq '.status'`
-	value=`echo "\"$zjh\",$lasj,$ah,$zxbd,$zxfy,$zxzt"`
+	value=`echo "\"$zjh\",$lasj,$ah,$zxbd,$zxfy,$zxzt,$nil,$nil,$nil,$nil"`
 	mysqlinsert $table $value
     i=`expr $i + 1`
 done
@@ -235,6 +258,7 @@ do
 done
 $ECHO $OUTPUT_GREEN '分析企业经营异常完成' $OUTPUT_RESET
 
+sleep 5
 url='http://www.qixin.com/service/getAbilityInfo?eid='$company'&_='$timer
 res=`curl -s $url -H "$COOKIE" -H 'DNT: 1' -H 'Accept-Encoding: gzip, deflate, sdch' -H 'Accept-Language: zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36' -H 'Content-Type: application/json; charset=utf-8' -H 'Accept: application/json, text/javascript, */*; q=0.01' -H "$referer" -H 'X-Requested-With: XMLHttpRequest' -H 'Connection: keep-alive' --compressed`
 #商标
@@ -355,6 +379,7 @@ do
 done
 $ECHO $OUTPUT_GREEN '分析企业资质认证完成' $OUTPUT_RESET
 
+sleep 5
 url='http://www.qixin.com/service/getOperationInfo?eid='$company'&ename='$encode'&_='$timer
 res=`curl -s $url -H "$COOKIE" -H 'DNT: 1' -H 'Accept-Encoding: gzip, deflate, sdch' -H 'Accept-Language: zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36' -H 'Content-Type: application/json; charset=utf-8' -H 'Accept: application/json, text/javascript, */*; q=0.01' -H "$referer" -H 'X-Requested-With: XMLHttpRequest' -H 'Connection: keep-alive' --compressed`
 #招聘信息
