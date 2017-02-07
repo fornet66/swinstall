@@ -8,6 +8,7 @@ fdisk /dev/vdb
 cat /proc/partitions
 partprobe /dev/vdb
 
+echo "- - -" > /sys/class/scsi_host/host2/scan
 pvcreate /dev/vdb1 /dev/vdb2
 pvdisplay
 pvs
